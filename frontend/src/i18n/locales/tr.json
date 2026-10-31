@@ -37,7 +37,8 @@
     "about": "Hakkında",
     "sessionsLoadFailed": "Konuşmalar yüklenemiyor.",
     "pixelOffice": "Piksel Ofis",
-    "paperTrading": "Sanal işlem"
+    "paperTrading": "Sanal işlem",
+    "swarmTeams": "Swarm ekipleri"
   },
   "runtime": {
     "monitorBadge": "Çalışma durumu izleyicisi",
@@ -2348,7 +2349,8 @@
       "runtime": "Aracı kurum bağlantılarını ve işlem çalışma durumunu kontrol edin.",
       "settings": "Modelleri, veri kaynaklarını ve aracı kurum bağlantılarını yapılandırın.",
       "pixelOffice": "Araştırma görevlerini planlayın ve atayın. Atama yürütmeyi başlatmaz; rütbeler yalnızca etikettir ve işlem yetkisi vermez.",
-      "paperTrading": "Günlük işlemleri sanal fonlarla deneyin. Aracı kuruma emir gönderilmez. Sonuçlar nakit temettüleri içermez ve toplam getiriyi göstermez."
+      "paperTrading": "Günlük işlemleri sanal fonlarla deneyin. Aracı kuruma emir gönderilmez. Sonuçlar nakit temettüleri içermez ve toplam getiriyi göstermez.",
+      "swarmTeams": "Ekip ön ayarlarını ve ajan tanımlarını inceleyin."
     },
     "instructions": {
       "reports": "Önce araştırma asistanından bir stratejiyi geriye dönük test etmesini isteyin, ardından sonuçları burada açın. PDF ve diğer sohbet belgelerini özgün konuşmadan indirin.",
@@ -2360,7 +2362,8 @@
       "runtime": "Önce Ayarlar veya Portföy’de bir aracı kurum bağlantısı kurun. Kullanılabilir işlemler, kurumun yeteneklerine ve verdiğiniz yetkiye bağlıdır.",
       "settings": "Başlamak için bir model yapılandırın. Gerektikçe veri kaynakları veya aracı kurum bağlantıları ekleyin; kamuya açık piyasa araştırması için aracı kurum hesabı gerekmez.",
       "pixelOffice": "Araştırma görevlerini planlayın ve atayın. Atama yürütmeyi başlatmaz; rütbeler yalnızca etikettir ve işlem yetkisi vermez.",
-      "paperTrading": "Yalnızca tamamlanmış günlük mumlar işlenir. Stratejiler önceki günleri okur ve işlem gününün kapanışında gerçekleşir. Normal kapanıştan 30 dakika sonrasını bekleyin; otomatik çalıştırma planlanmaz."
+      "paperTrading": "Yalnızca tamamlanmış günlük mumlar işlenir. Stratejiler önceki günleri okur ve işlem gününün kapanışında gerçekleşir. Normal kapanıştan 30 dakika sonrasını bekleyin; otomatik çalıştırma planlanmaz.",
+      "swarmTeams": "Belirtilen ekip planlarını, istemleri, bağımlılıkları ve ajan yapılandırmalarını inceleyin."
     }
   },
   "analysis": {
@@ -2546,5 +2549,35 @@
     "us": "ABD hisseleri · USD",
     "hk": "Hong Kong hisseleri · HKD",
     "cn_a": "Çin A hisseleri · CNY"
+  },
+  "swarmTeams": {
+    "catalog": "Ön ayar kataloğu",
+    "title": "Swarm ekipleri ve ajanları",
+    "subtitle": "Her ön ayarın ekip adımlarını ve ajan tanımlarını inceleyin.",
+    "areas": "Katalog alanları",
+    "teams": "Ekipler",
+    "agents": "Ajanlar",
+    "stages": "Adımlar",
+    "dependsOn": "Bağımlılıklar",
+    "promptTemplate": "İstem şablonu",
+    "inputFrom": "Girdiler",
+    "instructions": "Talimatlar",
+    "tools": "Araçlar",
+    "skills": "Beceriler",
+    "limits": "Belirtilen sınırlar",
+    "maxIterations": "Maksimum yineleme",
+    "timeoutSeconds": "Zaman aşımı (saniye)",
+    "maxRetries": "Maksimum yeniden deneme",
+    "none": "Belirtilmemiş",
+    "loading": "Ekip kataloğu yükleniyor…",
+    "unavailable": "Ekip kataloğu kullanılamıyor",
+    "retry": "Yeniden dene",
+    "noTeams": "Ekip ön ayarı bulunamadı.",
+    "noAgents": "Ajan bulunamadı.",
+    "noStages": "Bu ekip için adım tanımlanmamış.",
+    "userSource": "Kullanıcı ön ayarı",
+    "bundledSource": "Yerleşik",
+    "showFullInstructions": "Talimatların tamamını göster",
+    "showLessInstructions": "Daha az göster"
   }
 }

@@ -88,6 +88,13 @@ def register_swarm_routes(
 
         return list_presets()
 
+    @app.get("/swarm/presets/catalog", dependencies=[Depends(require_auth)])
+    async def list_swarm_preset_catalog():
+        """List allowlisted team, agent, and task definitions for the UI."""
+        from src.swarm.presets import list_preset_catalog
+
+        return list_preset_catalog()
+
     @app.post("/swarm/runs", dependencies=[Depends(require_auth)])
     async def create_swarm_run(payload: dict, http_request: Request):
         """Start a swarm run: body must include preset_name and user_vars."""

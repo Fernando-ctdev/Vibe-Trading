@@ -29,7 +29,8 @@
       "runtime": "Confira conexões de corretoras e o estado de execução das operações.",
       "settings": "Configure modelos, fontes de dados e conexões de corretoras.",
       "pixelOffice": "Planeje e atribua tarefas de pesquisa. A atribuição não inicia a execução; os cargos são rótulos e não concedem permissões de negociação.",
-      "paperTrading": "Teste operações diárias com recursos fictícios. Nenhuma ordem é enviada à corretora. Os resultados excluem dividendos em dinheiro e não representam retorno total."
+      "paperTrading": "Teste operações diárias com recursos fictícios. Nenhuma ordem é enviada à corretora. Os resultados excluem dividendos em dinheiro e não representam retorno total.",
+      "swarmTeams": "Consulte as predefinições de times e suas definições de agentes."
     },
     "instructions": {
       "reports": "Primeiro peça ao assistente um backtest de uma estratégia e abra os resultados aqui. Baixe PDFs e documentos gerados no chat na conversa original.",
@@ -41,7 +42,8 @@
       "runtime": "Primeiro configure uma conexão de corretora em Configurações ou Carteira. As operações disponíveis dependem dos recursos da corretora e da sua autorização.",
       "settings": "Configure um modelo para começar. Adicione dados ou conexões de corretoras conforme necessário; pesquisas com dados públicos de mercado não exigem conta em corretora.",
       "pixelOffice": "Planeje e atribua tarefas de pesquisa. A atribuição não inicia a execução; os cargos são rótulos e não concedem permissões de negociação.",
-      "paperTrading": "Somente candles diários completos são liquidados. As estratégias leem dias anteriores e executam no fechamento do dia indicado. Aguarde 30 minutos após o fechamento regular; nenhuma execução automática é agendada."
+      "paperTrading": "Somente candles diários completos são liquidados. As estratégias leem dias anteriores e executam no fechamento do dia indicado. Aguarde 30 minutos após o fechamento regular; nenhuma execução automática é agendada.",
+      "swarmTeams": "Veja os planos, prompts, dependências e configurações declaradas dos agentes."
     }
   },
   "layout": {
@@ -73,7 +75,8 @@
     "about": "Sobre",
     "sessionsLoadFailed": "Não foi possível carregar as conversas.",
     "pixelOffice": "Escritório pixel",
-    "paperTrading": "Negociação simulada"
+    "paperTrading": "Negociação simulada",
+    "swarmTeams": "Times Swarm"
   },
   "runtime": {
     "monitorBadge": "Monitor de Runtime",
@@ -2546,5 +2549,35 @@
     "us": "Ações dos EUA · USD",
     "hk": "Ações de Hong Kong · HKD",
     "cn_a": "Ações A da China · CNY"
+  },
+  "swarmTeams": {
+    "catalog": "Catálogo de predefinições",
+    "title": "Times e agentes Swarm",
+    "subtitle": "Consulte as etapas dos times e as definições de agentes de cada predefinição.",
+    "areas": "Áreas do catálogo",
+    "teams": "Times",
+    "agents": "Agentes",
+    "stages": "Etapas",
+    "dependsOn": "Depende de",
+    "promptTemplate": "Modelo de prompt",
+    "inputFrom": "Entradas de",
+    "instructions": "Instruções",
+    "tools": "Ferramentas",
+    "skills": "Skills",
+    "limits": "Limites declarados",
+    "maxIterations": "Máximo de iterações",
+    "timeoutSeconds": "Tempo limite (segundos)",
+    "maxRetries": "Máximo de tentativas",
+    "none": "Nenhum declarado",
+    "loading": "Carregando catálogo de times…",
+    "unavailable": "Catálogo de times indisponível",
+    "retry": "Tentar novamente",
+    "noTeams": "Nenhuma predefinição de time encontrada.",
+    "noAgents": "Nenhum agente encontrado.",
+    "noStages": "Nenhuma etapa definida para este time.",
+    "userSource": "Predefinição do usuário",
+    "bundledSource": "Integrado",
+    "showFullInstructions": "Mostrar instruções completas",
+    "showLessInstructions": "Mostrar menos"
   }
 }

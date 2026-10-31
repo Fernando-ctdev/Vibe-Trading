@@ -23,7 +23,8 @@
       "runtime": "查看券商连接和交易运行状态。",
       "settings": "配置模型、数据源和券商连接。",
       "pixelOffice": "规划和分配研究任务。分配任务不会启动执行；职级只是标签，不授予交易权限。",
-      "paperTrading": "使用模拟资金测试每日交易，不向券商发送订单。结果不含现金分红，不代表总回报。"
+      "paperTrading": "使用模拟资金测试每日交易，不向券商发送订单。结果不含现金分红，不代表总回报。",
+      "swarmTeams": "查看团队预设及其代理定义。"
     },
     "instructions": {
       "reports": "先在研究助手中描述策略并完成回测，再到这里打开结果。聊天生成的 PDF 等文档在原对话中下载。",
@@ -35,7 +36,8 @@
       "runtime": "先在设置或持仓页配置券商连接。可用的交易操作取决于该券商的能力和你的授权。",
       "settings": "初次使用先配置模型。按任务需要添加数据源或券商连接；研究公开行情无需连接券商账户。",
       "pixelOffice": "规划和分配研究任务。分配任务不会启动执行；职级只是标签，不授予交易权限。",
-      "paperTrading": "仅结算已完成的日线。策略只读取此前数据，在执行日收盘价成交。请等正常收市后 30 分钟；不会自动安排后台执行。"
+      "paperTrading": "仅结算已完成的日线。策略只读取此前数据，在执行日收盘价成交。请等正常收市后 30 分钟；不会自动安排后台执行。",
+      "swarmTeams": "查看已声明的团队计划、提示、依赖关系和代理配置。"
     }
   },
   "layout": {
@@ -67,7 +69,8 @@
     "about": "关于",
     "sessionsLoadFailed": "无法加载会话。",
     "pixelOffice": "像素办公室",
-    "paperTrading": "模拟交易"
+    "paperTrading": "模拟交易",
+    "swarmTeams": "Swarm 团队"
   },
   "runtime": {
     "monitorBadge": "交易监控",
@@ -2546,5 +2549,35 @@
     "us": "美股 · USD",
     "hk": "港股 · HKD",
     "cn_a": "A 股 · CNY"
+  },
+  "swarmTeams": {
+    "catalog": "预设目录",
+    "title": "Swarm 团队与代理",
+    "subtitle": "查看每个预设中的团队步骤和代理定义。",
+    "areas": "目录区域",
+    "teams": "团队",
+    "agents": "代理",
+    "stages": "步骤",
+    "dependsOn": "依赖项",
+    "promptTemplate": "提示模板",
+    "inputFrom": "输入来源",
+    "instructions": "指令",
+    "tools": "工具",
+    "skills": "技能",
+    "limits": "已声明的限制",
+    "maxIterations": "最大迭代次数",
+    "timeoutSeconds": "超时（秒）",
+    "maxRetries": "最大重试次数",
+    "none": "未声明",
+    "loading": "正在加载团队目录…",
+    "unavailable": "团队目录不可用",
+    "retry": "重试",
+    "noTeams": "未找到团队预设。",
+    "noAgents": "未找到代理。",
+    "noStages": "此团队未定义步骤。",
+    "userSource": "用户预设",
+    "bundledSource": "内置",
+    "showFullInstructions": "显示完整指令",
+    "showLessInstructions": "收起"
   }
 }

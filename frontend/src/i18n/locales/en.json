@@ -29,7 +29,8 @@
       "runtime": "Check broker connections and trading runtime status.",
       "settings": "Configure models, data sources, and broker connections.",
       "pixelOffice": "Plan and assign research tasks. Assignment does not start execution; ranks are labels and grant no trading permissions.",
-      "paperTrading": "Test daily trades with simulated funds. No broker orders are sent. Results exclude cash dividends and are not a total-return record."
+      "paperTrading": "Test daily trades with simulated funds. No broker orders are sent. Results exclude cash dividends and are not a total-return record.",
+      "swarmTeams": "Browse the team presets and their agent definitions."
     },
     "instructions": {
       "reports": "Ask the research assistant to backtest a strategy first, then open its results here. Download PDFs and other chat-generated documents from the original conversation.",
@@ -41,7 +42,8 @@
       "runtime": "Configure a broker connection in Settings or Portfolio first. Available trading actions depend on that broker's capabilities and your authorization.",
       "settings": "Configure a model to start. Add data sources or broker connections as your task needs them; public-market research does not require a broker account.",
       "pixelOffice": "Plan and assign research tasks. Assignment does not start execution; ranks are labels and grant no trading permissions.",
-      "paperTrading": "Only completed daily bars can settle. Strategies see prior days only and fill at the execution day’s close. Wait until 30 minutes after the regular market close; no background execution is scheduled."
+      "paperTrading": "Only completed daily bars can settle. Strategies see prior days only and fill at the execution day’s close. Wait until 30 minutes after the regular market close; no background execution is scheduled.",
+      "swarmTeams": "Read the declared team plans, prompts, dependencies, and agent configuration."
     }
   },
   "layout": {
@@ -73,7 +75,8 @@
     "about": "About",
     "sessionsLoadFailed": "Cannot load conversations.",
     "pixelOffice": "Pixel Office",
-    "paperTrading": "Paper trading"
+    "paperTrading": "Paper trading",
+    "swarmTeams": "Swarm teams"
   },
   "runtime": {
     "monitorBadge": "Runtime Monitor",
@@ -2546,5 +2549,35 @@
     "us": "US equities · USD",
     "hk": "Hong Kong equities · HKD",
     "cn_a": "A-shares · CNY"
+  },
+  "swarmTeams": {
+    "catalog": "Preset catalog",
+    "title": "Swarm teams",
+    "subtitle": "Browse team stages and the agent definitions used by each preset.",
+    "areas": "Catalog areas",
+    "teams": "Teams",
+    "agents": "Agents",
+    "stages": "Stages",
+    "dependsOn": "Depends on",
+    "promptTemplate": "Prompt template",
+    "inputFrom": "Input from",
+    "instructions": "Instructions",
+    "tools": "Tools",
+    "skills": "Skills",
+    "limits": "Declared limits",
+    "maxIterations": "Max iterations",
+    "timeoutSeconds": "Timeout (seconds)",
+    "maxRetries": "Max retries",
+    "none": "None declared",
+    "loading": "Loading team catalog…",
+    "unavailable": "Team catalog unavailable",
+    "retry": "Retry",
+    "noTeams": "No team presets found.",
+    "noAgents": "No agents found.",
+    "noStages": "No stages defined for this team.",
+    "userSource": "User preset",
+    "bundledSource": "Built in",
+    "showFullInstructions": "Show full instructions",
+    "showLessInstructions": "Show less"
   }
 }

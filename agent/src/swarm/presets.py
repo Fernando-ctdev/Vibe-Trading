@@ -119,7 +119,26 @@ def list_presets() -> list[dict]:
         List of dicts with keys: name, title, description, agent_count,
         variables, source (``"user"`` or ``"bundled"``).
     """
-    by_stem: dict[str, dict] = {}
+    by_stem = _listed_preset_data()
+    return sorted(
+        [
+            {
+                "name": data.get("name", stem),
+                "title": data.get("title", ""),
+                "description": data.get("description", ""),
+                "agent_count": len(data.get("agents", [])),
+                "variables": data.get("variables", []),
+                "source": source,
+            }
+            for stem, (source, data) in by_stem.items()
+        ],
+        key=lambda entry: entry["name"],
+    )
+
+
+def _listed_preset_data() -> dict[str, tuple[str, dict]]:
+    """Load readable preset documents once with user-over-bundled precedence."""
+    by_stem: dict[str, tuple[str, dict]] = {}
     for directory, source in ((PRESETS_DIR, "bundled"), (USER_PRESETS_DIR, "user")):
         if not directory.exists():
             continue
@@ -131,16 +150,67 @@ def list_presets() -> list[dict]:
             if not isinstance(data, dict):
                 continue
             # Later iteration (user) intentionally replaces bundled stems.
-            by_stem[path.stem] = {
-                "name": data.get("name", path.stem),
+            by_stem[path.stem] = (source, data)
+    return by_stem
+
+
+def list_preset_catalog() -> list[dict]:
+    """Return the allowlisted team, agent, and task definitions for the UI."""
+    catalog: list[dict] = []
+    limit_fields = ("max_iterations", "timeout_seconds", "max_retries")
+
+    for stem, (source, data) in _listed_preset_data().items():
+        agents = []
+        raw_agents = data.get("agents", [])
+        if not isinstance(raw_agents, list):
+            raw_agents = []
+        for raw_agent in raw_agents:
+            if not isinstance(raw_agent, dict):
+                continue
+            agent = {
+                "id": raw_agent.get("id"),
+                "role": raw_agent.get("role", ""),
+                "instructions": raw_agent.get("system_prompt", ""),
+            }
+            for field in ("tools", "skills"):
+                if field in raw_agent:
+                    agent[field] = raw_agent[field]
+            agent["limits"] = {
+                field: raw_agent[field]
+                for field in limit_fields
+                if field in raw_agent
+            }
+            agents.append(agent)
+
+        tasks = []
+        raw_tasks = data.get("tasks", [])
+        if not isinstance(raw_tasks, list):
+            raw_tasks = []
+        for raw_task in raw_tasks:
+            if not isinstance(raw_task, dict):
+                continue
+            task = {
+                "id": raw_task.get("id"),
+                "agent_id": raw_task.get("agent_id"),
+                "prompt_template": raw_task.get("prompt_template", ""),
+                "depends_on": raw_task.get("depends_on", []),
+            }
+            if "input_from" in raw_task:
+                task["input_from"] = raw_task["input_from"]
+            tasks.append(task)
+
+        catalog.append(
+            {
+                "name": data.get("name", stem),
                 "title": data.get("title", ""),
                 "description": data.get("description", ""),
-                "agent_count": len(data.get("agents", [])),
-                "variables": data.get("variables", []),
                 "source": source,
+                "agents": agents,
+                "tasks": tasks,
             }
+        )
 
-    return sorted(by_stem.values(), key=lambda entry: entry["name"])
+    return sorted(catalog, key=lambda entry: entry["name"])
 
 
 def _declared_variable_names(raw_variables: list) -> set[str]:

@@ -29,11 +29,11 @@ const Portfolio = lazy(() =>
 const Correlation = lazy(() =>
   import("@/pages/Correlation").then((m) => ({ default: m.Correlation })),
 );
+const SwarmTeams = lazy(() =>
+  import("@/pages/SwarmTeams").then((m) => ({ default: m.SwarmTeams })),
+);
 const AlphaZoo = lazy(() =>
   import("@/pages/AlphaZoo").then((m) => ({ default: m.AlphaZoo })),
-);
-const OptionsLab = lazy(() =>
-  import("@/pages/OptionsLab").then((m) => ({ default: m.OptionsLab })),
 );
 const PixelOffice = lazy(() =>
   import("@/pages/PixelOffice").then((m) => ({ default: m.PixelOffice })),
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
       { path: "/runs/:runId", element: wrap(RunDetail) },
       { path: "/compare", element: wrap(Compare) },
       { path: "/correlation", element: wrap(Correlation) },
-      { path: "/options", element: wrap(OptionsLab) },
+      { path: "/swarm/teams", element: wrap(SwarmTeams) },
       { path: "/alpha-zoo", element: wrap(AlphaZoo) },
       { path: "/alpha-zoo/bench", element: wrap(AlphaZoo) },
       { path: "/alpha-zoo/compare", element: wrap(AlphaZoo) },

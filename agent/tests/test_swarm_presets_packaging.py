@@ -41,6 +41,15 @@ def test_list_presets_returns_full_roster() -> None:
     )
 
 
+def test_list_presets_keeps_existing_summary_shape() -> None:
+    preset = list_presets()[0]
+
+    assert set(preset) == {
+        "name", "title", "description", "agent_count", "variables", "source"
+    }
+    assert "agents" not in preset
+
+
 def test_value_investing_committee_is_routable() -> None:
     """value_investing_committee must be in the routing table, not just on disk."""
     from src.tools.swarm_tool import _PRESET_NAMES, _normalize_preset_name
@@ -174,6 +183,13 @@ def test_user_preset_overrides_bundled_stem(user_presets_dir) -> None:
     assert entries["risk_committee"]["source"] == "user"
     # Override replaces, never duplicates.
     assert sum(p["name"] == "risk_committee" for p in list_presets()) == 1
+
+    from src.swarm.presets import list_preset_catalog
+
+    catalog = {p["name"]: p for p in list_preset_catalog()}
+    assert catalog["risk_committee"]["source"] == "user"
+    assert catalog["risk_committee"]["agents"][0]["id"] == "analyst"
+    assert sum(p["name"] == "risk_committee" for p in list_preset_catalog()) == 1
 
 
 def test_missing_user_dir_changes_nothing(tmp_path, monkeypatch) -> None:

@@ -78,7 +78,7 @@ def test_local_dev_write_allowed_when_key_unset() -> None:
 def test_remote_capability_inventory_requires_api_key_when_key_unset() -> None:
     client = _remote_client()
 
-    for path in ("/skills", "/swarm/presets", "/openapi.json"):
+    for path in ("/skills", "/swarm/presets", "/swarm/presets/catalog", "/openapi.json"):
         assert client.get(path).status_code == 403, path
 
 
@@ -149,6 +149,7 @@ def test_configured_api_key_required_for_sensitive_reads(
         "/swarm/runs",
         "/skills",
         "/swarm/presets",
+        "/swarm/presets/catalog",
         "/openapi.json",
     ]:
         response = client.get(path)
@@ -162,7 +163,13 @@ def test_configured_api_key_accepts_bearer_for_sensitive_reads(
     monkeypatch.setattr(api_server, "_API_KEY", "secret")
 
     client = _remote_client()
-    for path in ("/runs", "/skills", "/swarm/presets", "/openapi.json"):
+    for path in (
+        "/runs",
+        "/skills",
+        "/swarm/presets",
+        "/swarm/presets/catalog",
+        "/openapi.json",
+    ):
         response = client.get(path, headers={"Authorization": "Bearer secret"})
         assert response.status_code == 200, path
 

@@ -29,7 +29,8 @@
       "runtime": "Comprueba conexiones de brókeres y el estado de ejecución de operaciones.",
       "settings": "Configura modelos, fuentes de datos y conexiones de brókeres.",
       "pixelOffice": "Planifica y asigna tareas de investigación. La asignación no inicia la ejecución; los rangos son etiquetas y no conceden permisos de negociación.",
-      "paperTrading": "Prueba operaciones diarias con fondos ficticios. No se envían órdenes al bróker. Los resultados excluyen dividendos en efectivo y no representan la rentabilidad total."
+      "paperTrading": "Prueba operaciones diarias con fondos ficticios. No se envían órdenes al bróker. Los resultados excluyen dividendos en efectivo y no representan la rentabilidad total.",
+      "swarmTeams": "Consulta los presets de equipo y sus definiciones de agentes."
     },
     "instructions": {
       "reports": "Primero pide al asistente un backtest de una estrategia y abre aquí sus resultados. Descarga los PDF y documentos generados en el chat desde la conversación original.",
@@ -41,7 +42,8 @@
       "runtime": "Primero configura una conexión de bróker en Ajustes o Cartera. Las operaciones disponibles dependen de sus capacidades y de tu autorización.",
       "settings": "Configura un modelo para empezar. Añade datos o conexiones de brókeres según lo necesites; investigar datos públicos de mercado no requiere una cuenta de bróker.",
       "pixelOffice": "Planifica y asigna tareas de investigación. La asignación no inicia la ejecución; los rangos son etiquetas y no conceden permisos de negociación.",
-      "paperTrading": "Solo se liquidan velas diarias completas. Las estrategias leen días anteriores y ejecutan al cierre del día indicado. Espera 30 minutos tras el cierre habitual; no se programa ejecución automática."
+      "paperTrading": "Solo se liquidan velas diarias completas. Las estrategias leen días anteriores y ejecutan al cierre del día indicado. Espera 30 minutos tras el cierre habitual; no se programa ejecución automática.",
+      "swarmTeams": "Revisa los planes, prompts, dependencias y configuraciones declaradas de los agentes."
     }
   },
   "layout": {
@@ -73,7 +75,8 @@
     "about": "Acerca de",
     "sessionsLoadFailed": "No se pueden cargar las conversaciones.",
     "pixelOffice": "Oficina de píxeles",
-    "paperTrading": "Trading simulado"
+    "paperTrading": "Trading simulado",
+    "swarmTeams": "Equipos Swarm"
   },
   "runtime": {
     "monitorBadge": "Monitor de Runtime",
@@ -2546,5 +2549,35 @@
     "us": "Acciones de EE. UU. · USD",
     "hk": "Acciones de Hong Kong · HKD",
     "cn_a": "Acciones A de China · CNY"
+  },
+  "swarmTeams": {
+    "catalog": "Catálogo de presets",
+    "title": "Equipos y agentes Swarm",
+    "subtitle": "Consulta las etapas de los equipos y las definiciones de agentes de cada preset.",
+    "areas": "Áreas del catálogo",
+    "teams": "Equipos",
+    "agents": "Agentes",
+    "stages": "Etapas",
+    "dependsOn": "Depende de",
+    "promptTemplate": "Plantilla de prompt",
+    "inputFrom": "Entradas de",
+    "instructions": "Instrucciones",
+    "tools": "Herramientas",
+    "skills": "Habilidades",
+    "limits": "Límites declarados",
+    "maxIterations": "Máximo de iteraciones",
+    "timeoutSeconds": "Tiempo de espera (segundos)",
+    "maxRetries": "Máximo de reintentos",
+    "none": "Ninguno declarado",
+    "loading": "Cargando catálogo de equipos…",
+    "unavailable": "Catálogo de equipos no disponible",
+    "retry": "Reintentar",
+    "noTeams": "No se encontraron presets de equipo.",
+    "noAgents": "No se encontraron agentes.",
+    "noStages": "Este equipo no tiene etapas definidas.",
+    "userSource": "Preset de usuario",
+    "bundledSource": "Incluido",
+    "showFullInstructions": "Mostrar todas las instrucciones",
+    "showLessInstructions": "Mostrar menos"
   }
 }

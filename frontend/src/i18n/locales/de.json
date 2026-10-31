@@ -29,7 +29,8 @@
       "runtime": "Brokerverbindungen und den Betriebsstatus des Handels prüfen.",
       "settings": "Modelle, Datenquellen und Brokerverbindungen konfigurieren.",
       "pixelOffice": "Plane und verteile Rechercheaufgaben. Eine Zuweisung startet keine Ausführung. Ränge sind Bezeichnungen und erteilen keine Handelsrechte.",
-      "paperTrading": "Tägliche Trades mit virtuellem Kapital testen. Es werden keine Brokeraufträge gesendet. Bardividenden sind nicht enthalten; die Ergebnisse zeigen keine Gesamtrendite."
+      "paperTrading": "Tägliche Trades mit virtuellem Kapital testen. Es werden keine Brokeraufträge gesendet. Bardividenden sind nicht enthalten; die Ergebnisse zeigen keine Gesamtrendite.",
+      "swarmTeams": "Sieh dir Team-Presets und ihre Agent-Definitionen an."
     },
     "instructions": {
       "reports": "Bitte den Assistenten zuerst um einen Strategie-Backtest und öffne hier die Ergebnisse. Im Chat erstellte PDFs und andere Dokumente lädst du in der ursprünglichen Unterhaltung herunter.",
@@ -41,7 +42,8 @@
       "runtime": "Richte zuerst unter Einstellungen oder Portfolio eine Brokerverbindung ein. Verfügbare Handelsaktionen hängen von den Brokerfunktionen und deiner Autorisierung ab.",
       "settings": "Richte zunächst ein Modell ein. Ergänze Datenquellen oder Brokerverbindungen nach Bedarf; für öffentliche Marktrecherche ist kein Brokerkonto nötig.",
       "pixelOffice": "Plane und verteile Rechercheaufgaben. Eine Zuweisung startet keine Ausführung. Ränge sind Bezeichnungen und erteilen keine Handelsrechte.",
-      "paperTrading": "Nur abgeschlossene Tageskerzen werden abgerechnet. Strategien sehen vorherige Tage und handeln zum Schlusskurs des Ausführungstags. Bitte 30 Minuten nach regulärem Börsenschluss warten; es wird keine automatische Ausführung geplant."
+      "paperTrading": "Nur abgeschlossene Tageskerzen werden abgerechnet. Strategien sehen vorherige Tage und handeln zum Schlusskurs des Ausführungstags. Bitte 30 Minuten nach regulärem Börsenschluss warten; es wird keine automatische Ausführung geplant.",
+      "swarmTeams": "Lies die deklarierten Team-Pläne, Prompts, Abhängigkeiten und Agent-Konfigurationen."
     }
   },
   "layout": {
@@ -73,7 +75,8 @@
     "portfolio": "Kontopositionen",
     "sessionsLoadFailed": "Gespräche können nicht geladen werden.",
     "pixelOffice": "Pixelbüro",
-    "paperTrading": "Simulierter Handel"
+    "paperTrading": "Simulierter Handel",
+    "swarmTeams": "Swarm-Teams"
   },
   "runtime": {
     "monitorBadge": "Runtime-Monitor",
@@ -2546,5 +2549,35 @@
     "us": "US-Aktien · USD",
     "hk": "Hongkong-Aktien · HKD",
     "cn_a": "Chinesische A-Aktien · CNY"
+  },
+  "swarmTeams": {
+    "catalog": "Preset-Katalog",
+    "title": "Swarm-Teams und Agents",
+    "subtitle": "Sieh dir die Team-Schritte und Agent-Definitionen der einzelnen Presets an.",
+    "areas": "Katalogbereiche",
+    "teams": "Teams",
+    "agents": "Agents",
+    "stages": "Schritte",
+    "dependsOn": "Abhängig von",
+    "promptTemplate": "Prompt-Vorlage",
+    "inputFrom": "Eingaben aus",
+    "instructions": "Anweisungen",
+    "tools": "Tools",
+    "skills": "Skills",
+    "limits": "Deklarierte Limits",
+    "maxIterations": "Maximale Iterationen",
+    "timeoutSeconds": "Zeitlimit (Sekunden)",
+    "maxRetries": "Maximale Wiederholungen",
+    "none": "Keine angegeben",
+    "loading": "Team-Katalog wird geladen…",
+    "unavailable": "Team-Katalog nicht verfügbar",
+    "retry": "Erneut versuchen",
+    "noTeams": "Keine Team-Presets gefunden.",
+    "noAgents": "Keine Agents gefunden.",
+    "noStages": "Für dieses Team sind keine Schritte definiert.",
+    "userSource": "Benutzer-Preset",
+    "bundledSource": "Integriert",
+    "showFullInstructions": "Vollständige Anweisungen anzeigen",
+    "showLessInstructions": "Weniger anzeigen"
   }
 }

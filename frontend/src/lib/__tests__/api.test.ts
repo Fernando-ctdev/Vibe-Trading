@@ -25,6 +25,26 @@ describe("generated report download", () => {
 });
 
 describe("api request helper", () => {
+  it("loads the authenticated, read-only Swarm preset catalog", async () => {
+    vi.stubGlobal("localStorage", {
+      getItem: vi.fn(() => "remote-test-key"),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([]), { headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await expect(api.listSwarmPresetCatalog()).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/swarm/presets/catalog",
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer remote-test-key" }) }),
+    );
+    expect(fetchMock.mock.calls[0][1]).not.toHaveProperty("body");
+  });
+
   it("translates the server's message-size error into a recovery instruction", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
       detail: { code: "message_too_long", max_length: 100_000, message: "Shorten input" },

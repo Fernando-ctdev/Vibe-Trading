@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import i18n from "@/i18n";
+import { router } from "@/router";
 import { SidebarNavigation } from "../SidebarNavigation";
 import { PageHelp } from "../PageHelp";
 
@@ -14,19 +15,18 @@ it("keeps every feature directly reachable and distinguishes tasks from tools an
   renderNavigation();
   expect(within(screen.getByRole("region", { name: "Everyday research" })).getAllByRole("link").map((link) => link.getAttribute("href")))
     .toEqual(["/", "/reports", "/paper-trading", "/portfolio"]);
-  expect(within(screen.getByRole("region", { name: "Specialized analysis" })).getAllByRole("link").map((link) => link.getAttribute("href")))
-    .toEqual(["/alpha-zoo", "/options", "/correlation"]);
+  expect(screen.queryByRole("region", { name: "Specialized analysis" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Asset correlation" })).not.toBeInTheDocument();
   expect(within(screen.getByRole("region", { name: "Automation & setup" })).getAllByRole("link").map((link) => link.getAttribute("href")))
-    .toEqual(["/pixel-office", "/scheduled", "/runtime", "/settings"]);
+    .toEqual(["/scheduled", "/swarm/teams", "/settings"]);
   expect(screen.getByRole("link", { name: "Research assistant" })).toHaveAttribute("aria-current", "page");
+  expect(router.routes[0].children?.some((route) => route.path === "/correlation")).toBe(true);
 });
 
-it("retains labels and help in a compact sidebar, including nested factor routes", () => {
-  renderNavigation("/alpha-zoo/compare", true);
-  const link = screen.getByRole("link", { name: "Factor research" });
-  expect(link).toHaveAttribute("aria-current", "page");
-  expect(link).toHaveAttribute("title", expect.stringContaining("stock-selection signals"));
-  expect(screen.getByRole("navigation").querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+it("keeps Correlation hidden from the compact menu while its route remains available", () => {
+  renderNavigation("/correlation", true);
+  expect(screen.queryByRole("link", { name: "Asset correlation" })).not.toBeInTheDocument();
+  expect(screen.getByRole("navigation").querySelectorAll('[aria-current="page"]')).toHaveLength(0);
 });
 
 it("explains the backtest prerequisite and the separate location of chat-generated documents", () => {
@@ -51,10 +51,12 @@ it("opens a labeled feature menu in compact mode and returns focus on Escape", (
   const trigger = screen.getByRole("button", { name: "Browse features" });
   fireEvent.click(trigger);
   const menu = screen.getByRole("navigation", { name: "Browse features" });
-  expect(within(menu).getByText("Options analysis")).toBeVisible();
-  expect(within(menu).getByText("Pixel Office")).toBeVisible();
-  expect(within(menu).getByText("Trading status")).toBeVisible();
-  expect(within(menu).getAllByRole("link")).toHaveLength(11);
+  expect(within(menu).queryByText("Options analysis")).not.toBeInTheDocument();
+  expect(within(menu).queryByText("Pixel Office")).not.toBeInTheDocument();
+  expect(within(menu).queryByText("Trading status")).not.toBeInTheDocument();
+  expect(within(menu).queryByText("Asset correlation")).not.toBeInTheDocument();
+  expect(within(menu).getByRole("link", { name: "Swarm teams" })).toHaveAttribute("href", "/swarm/teams");
+  expect(within(menu).getAllByRole("link")).toHaveLength(7);
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("navigation", { name: "Browse features" })).not.toBeInTheDocument();
   expect(trigger).toHaveFocus();

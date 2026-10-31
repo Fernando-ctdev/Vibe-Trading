@@ -1,4 +1,4 @@
-import { FlaskConical, Building2, Activity, BarChart3, Bot, CalendarClock, CandlestickChart, FileText, Layers, Settings, WalletCards } from "lucide-react";
+import { FlaskConical, Bot, CalendarClock, FileText, Settings, Users, WalletCards } from "lucide-react";
 
 export const NAVIGATION_GROUPS = [
   { id: "research", items: [
@@ -7,15 +7,9 @@ export const NAVIGATION_GROUPS = [
     { id: "paperTrading", to: "/paper-trading", icon: FlaskConical },
     { id: "portfolio", to: "/portfolio", icon: WalletCards },
   ] },
-  { id: "analysis", items: [
-    { id: "alphaZoo", to: "/alpha-zoo", icon: Layers },
-    { id: "optionsLab", to: "/options", icon: CandlestickChart },
-    { id: "correlation", to: "/correlation", icon: BarChart3 },
-  ] },
   { id: "automation", items: [
-    { id: "pixelOffice", to: "/pixel-office", icon: Building2 },
     { id: "scheduled", to: "/scheduled", icon: CalendarClock },
-    { id: "runtime", to: "/runtime", icon: Activity },
+    { id: "swarmTeams", to: "/swarm/teams", icon: Users },
     { id: "settings", to: "/settings", icon: Settings },
   ] },
 ] as const;

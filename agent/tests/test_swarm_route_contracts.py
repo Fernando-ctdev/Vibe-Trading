@@ -136,3 +136,134 @@ def test_swarm_detail_uses_redacted_public_task_projection(
     assert "prompt_template" not in task
     assert task["worker_iterations"] == 3
     assert task["iterations"] == 3
+
+
+def test_swarm_preset_catalog_is_allowlisted_and_summary_stays_compatible(
+    swarm_store: SwarmStore, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    presets_dir = tmp_path / "presets"
+    presets_dir.mkdir()
+    (presets_dir / "public_team.yaml").write_text(
+        """\
+name: public_team
+title: Public Team
+description: A test team.
+agents:
+  - id: analyst
+    role: Research Analyst
+    system_prompt: private prompt
+    tools: [read_file]
+    skills: [fundamental-filter]
+    max_iterations: 7
+    timeout_seconds: 120
+    max_retries: 2
+    model_name: internal-model-name
+    extra_agent_key: hidden
+  - id: reviewer
+    role: Reviewer
+    system_prompt: Review the result.
+tasks:
+  - id: task-research
+    agent_id: analyst
+    prompt_template: Analyze {ticker}.
+    depends_on: []
+    extra_task_key: hidden
+  - id: task-review
+    agent_id: reviewer
+    prompt_template: Review the analysis.
+    depends_on: [task-research]
+    input_from: {analysis: task-research}
+extra_preset_key: hidden
+""",
+        encoding="utf-8",
+    )
+    (presets_dir / "variant_team.yaml").write_text(
+        """\
+name: variant_team
+title: Variant Team
+description: A second team with a different analyst definition.
+agents:
+  - id: analyst
+    role: Technical Analyst
+    system_prompt: Analyze price structure.
+    max_iterations: 3
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("src.swarm.presets.PRESETS_DIR", presets_dir)
+    monkeypatch.setattr("src.swarm.presets.USER_PRESETS_DIR", tmp_path / "user-presets")
+
+    client = _client()
+    summary_response = client.get("/swarm/presets")
+    response = client.get("/swarm/presets/catalog")
+
+    assert response.status_code == 200
+    presets = {preset["name"]: preset for preset in response.json()}
+    preset = presets["public_team"]
+    assert preset == {
+        "name": "public_team",
+        "title": "Public Team",
+        "description": "A test team.",
+        "source": "bundled",
+        "agents": [
+            {
+                "id": "analyst",
+                "role": "Research Analyst",
+                "instructions": "private prompt",
+                "tools": ["read_file"],
+                "skills": ["fundamental-filter"],
+                "limits": {
+                    "max_iterations": 7,
+                    "timeout_seconds": 120,
+                    "max_retries": 2,
+                },
+            },
+            {
+                "id": "reviewer",
+                "role": "Reviewer",
+                "instructions": "Review the result.",
+                "limits": {},
+            },
+        ],
+        "tasks": [
+            {
+                "id": "task-research",
+                "agent_id": "analyst",
+                "prompt_template": "Analyze {ticker}.",
+                "depends_on": [],
+            },
+            {
+                "id": "task-review",
+                "agent_id": "reviewer",
+                "prompt_template": "Review the analysis.",
+                "depends_on": ["task-research"],
+                "input_from": {"analysis": "task-research"},
+            },
+        ],
+    }
+    assert presets["variant_team"]["agents"] == [
+        {
+            "id": "analyst",
+            "role": "Technical Analyst",
+            "instructions": "Analyze price structure.",
+            "limits": {"max_iterations": 3},
+        }
+    ]
+    assert presets["variant_team"]["tasks"] == []
+    assert "extra_agent_key" not in response.text
+    assert "internal-model-name" not in response.text
+    assert "extra_task_key" not in response.text
+    assert "extra_preset_key" not in response.text
+    assert client.post("/swarm/presets/catalog").status_code == 405
+
+    assert summary_response.status_code == 200
+    summaries = {preset["name"]: preset for preset in summary_response.json()}
+    assert summaries["public_team"] == {
+        "name": "public_team",
+        "title": "Public Team",
+        "description": "A test team.",
+        "agent_count": 2,
+        "variables": [],
+        "source": "bundled",
+    }
+    assert summaries["variant_team"]["agent_count"] == 1

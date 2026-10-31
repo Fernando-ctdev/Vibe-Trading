@@ -622,6 +622,8 @@ export const api = {
 
   // Swarm API
   listSwarmPresets: () => request<SwarmPreset[]>("/swarm/presets"),
+  listSwarmPresetCatalog: (signal?: AbortSignal) =>
+    request<SwarmPresetCatalog[]>("/swarm/presets/catalog", { signal }),
   createSwarmRun: (preset_name: string, user_vars: Record<string, string>) =>
     request<{ id: string; status: string }>("/swarm/runs", {
       method: "POST",
@@ -906,6 +908,36 @@ export interface SwarmPreset {
   description: string;
   agent_count: number;
   variables: { name: string; description: string; required: boolean }[];
+}
+
+export interface SwarmPresetCatalogAgent {
+  id?: string;
+  role?: string;
+  instructions?: string;
+  tools?: string[];
+  skills?: string[];
+  limits?: {
+    max_iterations?: number;
+    timeout_seconds?: number;
+    max_retries?: number;
+  };
+}
+
+export interface SwarmPresetCatalogTask {
+  id?: string;
+  agent_id?: string;
+  prompt_template?: string;
+  depends_on?: string[];
+  input_from?: unknown;
+}
+
+export interface SwarmPresetCatalog {
+  name: string;
+  title?: string;
+  description?: string;
+  source?: string;
+  agents?: SwarmPresetCatalogAgent[];
+  tasks?: SwarmPresetCatalogTask[];
 }
 
 export interface SwarmRunSummary {
