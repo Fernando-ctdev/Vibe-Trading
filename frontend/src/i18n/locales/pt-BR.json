@@ -76,7 +76,7 @@
     "sessionsLoadFailed": "Não foi possível carregar as conversas.",
     "pixelOffice": "Escritório pixel",
     "paperTrading": "Negociação simulada",
-    "swarmTeams": "Times Swarm"
+    "swarmTeams": "Times e agentes"
   },
   "runtime": {
     "monitorBadge": "Monitor de Runtime",
