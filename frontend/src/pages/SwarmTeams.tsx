@@ -1,8 +1,9 @@
 import { useEffect, useId, useState } from "react";
-import { AlertTriangle, Bot, RefreshCw, Users } from "lucide-react";
+import { AlertTriangle, Bot, Plus, RefreshCw, Users } from "lucide-react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { api, type SwarmPresetCatalog, type SwarmPresetCatalogAgent, type SwarmPresetCatalogTask } from "@/lib/api";
+import { PresetYamlEditor } from "@/components/swarm/PresetYamlEditor";
 
 type CatalogView = "teams" | "agents";
 
@@ -145,6 +146,7 @@ export function SwarmTeams() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<CatalogView>("teams");
   const [reload, setReload] = useState(0);
+  const [editor, setEditor] = useState<{ preset?: Pick<SwarmPresetCatalog, "name" | "title" | "source"> } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -187,7 +189,19 @@ export function SwarmTeams() {
               {t("swarmTeams.agents")}
             </button>
           </div>
+          <button type="button" onClick={() => setEditor({})} className="inline-flex items-center gap-2 rounded-md border border-primary/30 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+            <Plus className="h-4 w-4" aria-hidden="true" />{t("swarmTeams.newPreset")}
+          </button>
         </div>
+
+        {editor && (
+          <PresetYamlEditor
+            key={editor.preset?.name ?? "new-preset"}
+            preset={editor.preset}
+            onCancel={() => setEditor(null)}
+            onSaved={() => { setEditor(null); setReload((attempt) => attempt + 1); }}
+          />
+        )}
 
         {loading ? (
           <div role="status" aria-label={t("swarmTeams.loading")} className="grid gap-4 md:grid-cols-2">
@@ -214,7 +228,12 @@ export function SwarmTeams() {
                         <p className="mt-1 break-all font-mono text-xs text-muted-foreground">{preset.name}</p>
                         {preset.description && <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">{preset.description}</p>}
                       </div>
-                      {preset.source && <span className="shrink-0 rounded-md border border-border/60 px-2.5 py-1 text-xs text-muted-foreground">{preset.source === "user" ? t("swarmTeams.userSource") : preset.source === "bundled" ? t("swarmTeams.bundledSource") : preset.source}</span>}
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        {preset.source && <span className="rounded-md border border-border/60 px-2.5 py-1 text-xs text-muted-foreground">{preset.source === "user" ? t("swarmTeams.userSource") : preset.source === "bundled" ? t("swarmTeams.bundledSource") : preset.source}</span>}
+                        <button type="button" onClick={() => setEditor({ preset: { name: preset.name, title: preset.title, source: preset.source } })} className="rounded-md border border-border/60 px-2.5 py-1.5 text-xs font-medium hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                          {t("swarmTeams.editYaml")}
+                        </button>
+                      </div>
                     </div>
                   </header>
                   {preset.tasks !== undefined && (

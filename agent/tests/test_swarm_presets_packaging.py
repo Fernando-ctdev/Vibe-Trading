@@ -10,6 +10,8 @@ sync; these tests fail fast if either side drifts again.
 
 from __future__ import annotations
 
+import os
+import stat
 from pathlib import Path
 
 import pytest
@@ -48,6 +50,30 @@ def test_list_presets_keeps_existing_summary_shape() -> None:
         "name", "title", "description", "agent_count", "variables", "source"
     }
     assert "agents" not in preset
+
+
+def test_atomic_user_preset_writer_preserves_text_and_writes_only_user_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import src.swarm.presets as presets_module
+
+    bundled_dir = tmp_path / "bundled"
+    user_dir = tmp_path / "user"
+    bundled_dir.mkdir()
+    monkeypatch.setattr(presets_module, "PRESETS_DIR", bundled_dir)
+    monkeypatch.setattr(presets_module, "USER_PRESETS_DIR", user_dir)
+    writer = getattr(presets_module, "_atomic_write_user_preset", None)
+    assert callable(writer), "preset edits must use the restricted atomic user writer"
+    yaml_text = "# preserve comment\nname: atomic_team\nagents: []\ntasks: []\n"
+
+    writer("atomic_team", yaml_text)
+
+    target = user_dir / "atomic_team.yaml"
+    assert target.read_bytes() == yaml_text.encode("utf-8")
+    assert not (bundled_dir / target.name).exists()
+    assert list(user_dir.iterdir()) == [target]
+    if os.name == "posix":
+        assert stat.S_IMODE(target.stat().st_mode) == 0o600
 
 
 def test_value_investing_committee_is_routable() -> None:
@@ -200,7 +226,7 @@ def test_missing_user_dir_changes_nothing(tmp_path, monkeypatch) -> None:
     assert all(p["source"] == "bundled" for p in list_presets())
 
 
-@pytest.mark.parametrize("bad_name", ["../escape", "a/b", "..", "", "a\\b"])
+@pytest.mark.parametrize("bad_name", ["../escape", "a/b", "..", "", "a\\b", "a:b"])
 def test_path_escaping_names_rejected(bad_name: str) -> None:
     with pytest.raises(ValueError):
         load_preset(bad_name)

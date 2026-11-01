@@ -8,8 +8,11 @@ from __future__ import annotations
 import json
 from typing import Any, Awaitable, Callable
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.responses import Response, StreamingResponse
+from pydantic import BaseModel, ConfigDict, StrictStr
+from starlette.requests import Request as StarletteRequest
 
 # ---------------------------------------------------------------------------
 # Module-level state
@@ -42,15 +45,21 @@ def _get_swarm_runtime():
 AuthDep = Callable[..., Awaitable[Any] | Any]
 
 
+class SwarmPresetYaml(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    yaml_text: StrictStr
+
+
 def register_swarm_routes(
     app: FastAPI,
     require_auth: AuthDep | None = None,
     require_event_stream_auth: AuthDep | None = None,
+    require_settings_write_auth: AuthDep | None = None,
 ) -> None:
     """Mount the swarm routes onto ``app``.
 
-    Resolves ``require_auth`` and ``require_event_stream_auth`` from the host
-    ``api_server`` module via ``sys.modules`` when not passed explicitly.
+    Resolves auth dependencies from the host ``api_server`` module via
+    ``sys.modules`` when not passed explicitly.
     """
     import sys as _sys
 
@@ -65,6 +74,8 @@ def register_swarm_routes(
         require_auth = host.require_auth
     if require_event_stream_auth is None:
         require_event_stream_auth = host.require_event_stream_auth
+    if require_settings_write_auth is None:
+        require_settings_write_auth = host.require_settings_write_auth
 
     def _host_validate_path_param(value: str, kind: str) -> None:
         h = _sys.modules.get("api_server") or _sys.modules.get("agent.api_server")
@@ -73,6 +84,17 @@ def register_swarm_routes(
     def _host_shell_tools_enabled_for_request(request: Request) -> bool:
         h = _sys.modules.get("api_server") or _sys.modules.get("agent.api_server")
         return h._shell_tools_enabled_for_request(request)
+
+    validation_bearer = HTTPBearer(auto_error=False)
+
+    async def _require_swarm_validation_auth(
+        request: Request,
+        cred: HTTPAuthorizationCredentials | None = Security(validation_bearer),
+    ):
+        # This POST only validates in memory; reuse API-key auth without its
+        # cross-site write guard, which remains enabled for every mutation.
+        safe_request = StarletteRequest({**request.scope, "method": "GET"}, request.receive)
+        return await require_auth(safe_request, cred)
 
     # --- Routes ---
 
@@ -94,6 +116,93 @@ def register_swarm_routes(
         from src.swarm.presets import list_preset_catalog
 
         return list_preset_catalog()
+
+    @app.get("/swarm/presets/{name}/source", dependencies=[Depends(require_auth)])
+    async def get_swarm_preset_source(name: str):
+        from src.swarm.presets import read_preset_source
+
+        try:
+            return read_preset_source(name)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid preset name") from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Preset not found") from exc
+        except (OSError, UnicodeError) as exc:
+            raise HTTPException(status_code=500, detail="Failed to read preset") from exc
+
+    @app.post(
+        "/swarm/presets/validate",
+        dependencies=[Depends(_require_swarm_validation_auth)],
+    )
+    async def validate_swarm_preset(payload: SwarmPresetYaml):
+        from src.swarm.presets import validate_preset_yaml
+
+        _, report = validate_preset_yaml(payload.yaml_text)
+        if not report["valid"]:
+            raise HTTPException(status_code=422, detail=report)
+        return report
+
+    @app.post(
+        "/swarm/presets",
+        status_code=201,
+        dependencies=[Depends(require_settings_write_auth)],
+    )
+    async def create_swarm_preset(payload: SwarmPresetYaml):
+        from src.swarm.presets import (
+            PresetConflictError,
+            create_user_preset,
+            validate_preset_yaml,
+        )
+
+        name, report = validate_preset_yaml(payload.yaml_text)
+        if not report["valid"]:
+            raise HTTPException(status_code=422, detail=report)
+        try:
+            create_user_preset(name, payload.yaml_text)
+        except PresetConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except (OSError, ValueError) as exc:
+            raise HTTPException(status_code=500, detail="Failed to save preset") from exc
+        return Response(status_code=201)
+
+    @app.put(
+        "/swarm/presets/{name}/source",
+        dependencies=[Depends(require_settings_write_auth)],
+    )
+    async def save_swarm_preset(
+        name: str,
+        payload: SwarmPresetYaml,
+        if_match: str | None = Header(default=None, alias="If-Match"),
+    ):
+        from src.swarm.presets import (
+            PresetConflictError,
+            _validate_preset_name,
+            save_user_preset,
+            validate_preset_yaml,
+        )
+
+        try:
+            clean_name = _validate_preset_name(name)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid preset name") from exc
+        if clean_name != name:
+            raise HTTPException(status_code=400, detail="Invalid preset name")
+        document_name, report = validate_preset_yaml(payload.yaml_text)
+        if not report["valid"]:
+            raise HTTPException(status_code=422, detail=report)
+        if document_name != clean_name:
+            report["valid"] = False
+            report["errors"].append("Preset name must match the requested name")
+            raise HTTPException(status_code=422, detail=report)
+        try:
+            save_user_preset(clean_name, payload.yaml_text, if_match or "")
+        except PresetConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Preset not found") from exc
+        except (OSError, ValueError) as exc:
+            raise HTTPException(status_code=500, detail="Failed to save preset") from exc
+        return Response(status_code=200)
 
     @app.post("/swarm/runs", dependencies=[Depends(require_auth)])
     async def create_swarm_run(payload: dict, http_request: Request):

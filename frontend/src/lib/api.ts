@@ -61,12 +61,14 @@ export async function downloadGeneratedReport(reportId: string, filename: string
 export class ApiError extends Error {
   status: number;
   code?: string;
+  detail?: unknown;
 
-  constructor(message: string, status: number, code?: string) {
+  constructor(message: string, status: number, code?: string, detail?: unknown) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.detail = detail;
   }
 }
 
@@ -400,9 +402,11 @@ export interface PortfolioSettingsResponse {
 
 async function errorFromResponse(res: Response): Promise<ApiError> {
   let detail = `HTTP ${res.status}`;
+  let responseDetail: unknown;
   let code: string | undefined;
   try {
     const body = await res.json();
+    responseDetail = body.detail ?? body;
     // Options endpoints report errors under an `error` key
     // ({status:"error", error} / {ok:false, error}) rather than detail/message.
     const raw = body.detail ?? body.message ?? body.error;
@@ -423,7 +427,7 @@ async function errorFromResponse(res: Response): Promise<ApiError> {
   if (res.status === 401 || res.status === 403) {
     detail = getAuthRequiredMessage();
   }
-  return new ApiError(detail, res.status, code);
+  return new ApiError(detail, res.status, code, responseDetail);
 }
 
 async function request<T>(path: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
@@ -624,6 +628,24 @@ export const api = {
   listSwarmPresets: () => request<SwarmPreset[]>("/swarm/presets"),
   listSwarmPresetCatalog: (signal?: AbortSignal) =>
     request<SwarmPresetCatalog[]>("/swarm/presets/catalog", { signal }),
+  getSwarmPresetSource: (name: string, signal?: AbortSignal) =>
+    request<SwarmPresetSource>(`/swarm/presets/${encodeURIComponent(name)}/source`, { signal }),
+  validateSwarmPreset: (yamlText: string) =>
+    request<SwarmPresetValidation>("/swarm/presets/validate", {
+      method: "POST",
+      body: JSON.stringify({ yaml_text: yamlText }),
+    }),
+  createSwarmPreset: (yamlText: string) =>
+    request<void>("/swarm/presets", {
+      method: "POST",
+      body: JSON.stringify({ yaml_text: yamlText }),
+    }),
+  saveSwarmPresetSource: (name: string, yamlText: string, revision: string) =>
+    request<void>(`/swarm/presets/${encodeURIComponent(name)}/source`, {
+      method: "PUT",
+      headers: { "If-Match": revision },
+      body: JSON.stringify({ yaml_text: yamlText }),
+    }),
   createSwarmRun: (preset_name: string, user_vars: Record<string, string>) =>
     request<{ id: string; status: string }>("/swarm/runs", {
       method: "POST",
@@ -938,6 +960,19 @@ export interface SwarmPresetCatalog {
   source?: string;
   agents?: SwarmPresetCatalogAgent[];
   tasks?: SwarmPresetCatalogTask[];
+}
+
+export interface SwarmPresetSource {
+  yaml_text: string;
+  source: "user" | "bundled";
+  revision: string;
+}
+
+export interface SwarmPresetValidation {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  layers: Array<Array<{ task_id: string; agent_id: string }>>;
 }
 
 export interface SwarmRunSummary {

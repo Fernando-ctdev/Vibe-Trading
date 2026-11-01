@@ -17,12 +17,18 @@ lookup, so a name can never escape either presets directory.
 from __future__ import annotations
 
 import uuid
+import hashlib
+import os
+import re
+import tempfile
+import threading
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from string import Formatter
 
 import yaml
+from pydantic import ValidationError
 
 from src.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
 from src.swarm.task_store import topological_layers, validate_dag
@@ -33,6 +39,7 @@ PRESETS_DIR = Path(__file__).resolve().parent / "presets"
 #: ``src/agent/skills.py``). Survives package upgrades.
 USER_PRESETS_DIR = Path.home() / ".vibe-trading" / "swarm" / "presets"
 _INTERNAL_TEMPLATE_VARS = {"upstream_context"}
+_PRESET_WRITE_LOCK = threading.Lock()
 
 
 def _redact_home(path: Path) -> str:
@@ -58,7 +65,7 @@ def _validate_preset_name(name: str) -> str:
         ValueError: Empty name, path separators, or parent references.
     """
     cleaned = (name or "").strip()
-    if not cleaned or cleaned in {".", ".."} or "/" in cleaned or "\\" in cleaned:
+    if not cleaned or cleaned in {".", ".."} or any(char in cleaned for char in "/\\:"):
         raise ValueError(f"invalid preset name: {name!r}")
     return cleaned
 
@@ -238,20 +245,56 @@ def _template_variables(template: str) -> set[str]:
     return variables
 
 
-def inspect_preset(name: str) -> dict:
-    """Validate a swarm preset and return a dry-run execution plan.
+def _preset_definitions(
+    data: dict,
+) -> tuple[list[SwarmAgentSpec], list[SwarmTask]]:
+    """Build agent and task models from an already parsed preset document."""
+    agents = [
+        SwarmAgentSpec(
+            id=agent_data["id"],
+            role=agent_data.get("role", ""),
+            system_prompt=agent_data.get("system_prompt", ""),
+            tools=agent_data.get("tools", []),
+            skills=agent_data.get("skills", []),
+            max_iterations=agent_data.get("max_iterations", 25),
+            timeout_seconds=agent_data.get("timeout_seconds", 300),
+            model_name=agent_data.get("model_name"),
+            max_retries=agent_data.get("max_retries", 2),
+        )
+        for agent_data in data.get("agents", [])
+    ]
 
-    This does not start workers or call an LLM. It catches common YAML/DAG
-    mistakes early and exposes the topological task layers used by the runtime.
-    """
-    data = load_preset(name)
-    run = build_run_from_preset(name, {})
+    tasks = []
+    for task_data in data.get("tasks", []):
+        depends_on = task_data.get("depends_on", [])
+        tasks.append(
+            SwarmTask(
+                id=task_data["id"],
+                agent_id=task_data["agent_id"],
+                prompt_template=task_data.get("prompt_template", ""),
+                depends_on=depends_on,
+                blocked_by=list(depends_on),
+                input_from=task_data.get("input_from", {}),
+                status=TaskStatus.blocked if depends_on else TaskStatus.pending,
+            )
+        )
+    return agents, tasks
+
+
+def inspect_preset(name: str) -> dict:
+    """Load and validate a preset without starting workers or calling an LLM."""
+    return inspect_preset_document(load_preset(name), name)
+
+
+def inspect_preset_document(data: dict, preset_name: str = "") -> dict:
+    """Validate parsed preset data and return its dry-run execution plan."""
+    agents, tasks = _preset_definitions(data)
 
     errors: list[str] = []
     warnings: list[str] = []
 
-    agent_ids = [agent.id for agent in run.agents]
-    task_ids = [task.id for task in run.tasks]
+    agent_ids = [agent.id for agent in agents]
+    task_ids = [task.id for task in tasks]
     agent_id_set = set(agent_ids)
     task_id_set = set(task_ids)
 
@@ -260,7 +303,7 @@ def inspect_preset(name: str) -> dict:
     for duplicate in sorted(item for item, count in Counter(task_ids).items() if count > 1):
         errors.append(f"Duplicate task id: {duplicate}")
 
-    for task in run.tasks:
+    for task in tasks:
         if task.agent_id not in agent_id_set:
             errors.append(f"Task '{task.id}' references unknown agent '{task.agent_id}'")
         for _, upstream_task_id in task.input_from.items():
@@ -271,13 +314,13 @@ def inspect_preset(name: str) -> dict:
 
     layers: list[list[str]] = []
     try:
-        validate_dag(run.tasks)
-        layers = topological_layers(run.tasks)
+        validate_dag(tasks)
+        layers = topological_layers(tasks)
     except ValueError as exc:
         errors.append(str(exc))
 
     dependents: dict[str, list[str]] = defaultdict(list)
-    for task in run.tasks:
+    for task in tasks:
         for dep in task.depends_on:
             dependents[dep].append(task.id)
 
@@ -295,7 +338,7 @@ def inspect_preset(name: str) -> dict:
             stack.extend(dependents.get(current, []))
         return False
 
-    for task in run.tasks:
+    for task in tasks:
         for key, upstream_task_id in task.input_from.items():
             if upstream_task_id in task_id_set and not is_upstream(upstream_task_id, task.id):
                 warnings.append(
@@ -323,9 +366,9 @@ def inspect_preset(name: str) -> dict:
             + ", ".join(unused_declarations)
         )
 
-    task_agent = {task.id: task.agent_id for task in run.tasks}
+    task_agent = {task.id: task.agent_id for task in tasks}
     return {
-        "name": data.get("name", name),
+        "name": data.get("name", preset_name),
         "title": data.get("title", ""),
         "description": data.get("description", ""),
         "valid": not errors,
@@ -335,7 +378,7 @@ def inspect_preset(name: str) -> dict:
         "used_variables": sorted(used_variables),
         "agents": [
             {"id": agent.id, "role": agent.role, "tools": agent.tools, "skills": agent.skills}
-            for agent in run.agents
+            for agent in agents
         ],
         "tasks": [
             {
@@ -344,13 +387,101 @@ def inspect_preset(name: str) -> dict:
                 "depends_on": task.depends_on,
                 "input_from": task.input_from,
             }
-            for task in run.tasks
+            for task in tasks
         ],
         "layers": [
             [{"task_id": task_id, "agent_id": task_agent.get(task_id, "")} for task_id in layer]
             for layer in layers
         ],
     }
+
+
+def validate_preset_yaml(yaml_text: str) -> tuple[str | None, dict]:
+    """Parse and inspect editor YAML without touching the filesystem."""
+    try:
+        data = yaml.safe_load(yaml_text)
+        if not isinstance(data, dict):
+            raise ValueError("YAML root must be a mapping")
+        name = data.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("Preset name must be a non-empty string")
+        if _validate_preset_name(name) != name:
+            raise ValueError("Preset name must not contain surrounding whitespace")
+        inspection = inspect_preset_document(data, name)
+        return name, {
+            key: inspection[key]
+            for key in ("valid", "errors", "warnings", "layers")
+        }
+    except yaml.YAMLError as exc:
+        errors = [f"Invalid YAML: {exc}"]
+    except (AttributeError, KeyError, TypeError, ValueError, ValidationError) as exc:
+        errors = [str(exc)]
+    return None, {"valid": False, "errors": errors, "warnings": [], "layers": []}
+
+
+class PresetConflictError(Exception):
+    """A preset already exists or the supplied source revision is stale."""
+
+
+def read_preset_source(name: str) -> dict:
+    """Return exact source text and its content revision without its path."""
+    path = resolve_preset_path(name)
+    if path is None:
+        raise FileNotFoundError("Preset not found")
+    content = path.read_bytes()
+    return {
+        "yaml_text": content.decode("utf-8"),
+        "source": "user" if path.parent.resolve() == USER_PRESETS_DIR.resolve() else "bundled",
+        "revision": hashlib.sha256(content).hexdigest(),
+    }
+
+
+def _atomic_write_user_preset(name: str, yaml_text: str) -> None:
+    """Atomically replace one user preset, never writing into the package tree."""
+    name = _validate_preset_name(name)
+    user_dir = USER_PRESETS_DIR.resolve()
+    bundled_dir = PRESETS_DIR.resolve()
+    if user_dir == bundled_dir or bundled_dir in user_dir.parents:
+        raise ValueError("User preset directory must be outside bundled presets")
+    user_dir.mkdir(parents=True, exist_ok=True)
+    target = user_dir / f"{name}.yaml"
+    fd, temp_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=user_dir)
+    try:
+        os.chmod(temp_name, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as stream:
+            stream.write(yaml_text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_name, target)
+    finally:
+        try:
+            os.unlink(temp_name)
+        except FileNotFoundError:
+            pass
+
+
+def create_user_preset(name: str, yaml_text: str) -> None:
+    """Create a new user preset if neither source already has that name."""
+    name = _validate_preset_name(name)
+    with _PRESET_WRITE_LOCK:
+        if resolve_preset_path(name) is not None:
+            raise PresetConflictError("Preset already exists")
+        _atomic_write_user_preset(name, yaml_text)
+
+
+def save_user_preset(name: str, yaml_text: str, expected_revision: str) -> None:
+    """Save an edit only if it still matches the source the editor loaded."""
+    name = _validate_preset_name(name)
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", expected_revision or ""):
+        raise PresetConflictError("A valid If-Match revision is required")
+    with _PRESET_WRITE_LOCK:
+        path = resolve_preset_path(name)
+        if path is None:
+            raise FileNotFoundError("Preset not found")
+        current_revision = hashlib.sha256(path.read_bytes()).hexdigest()
+        if current_revision != expected_revision.lower():
+            raise PresetConflictError("If-Match revision is stale")
+        _atomic_write_user_preset(name, yaml_text)
 
 
 def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmRun:
@@ -376,35 +507,7 @@ def build_run_from_preset(preset_name: str, user_vars: dict[str, str]) -> SwarmR
     """
     data = load_preset(preset_name)
 
-    # Parse agents
-    agents: list[SwarmAgentSpec] = []
-    for agent_data in data.get("agents", []):
-        agents.append(SwarmAgentSpec(
-            id=agent_data["id"],
-            role=agent_data.get("role", ""),
-            system_prompt=agent_data.get("system_prompt", ""),
-            tools=agent_data.get("tools", []),
-            skills=agent_data.get("skills", []),
-            max_iterations=agent_data.get("max_iterations", 25),
-            timeout_seconds=agent_data.get("timeout_seconds", 300),
-            model_name=agent_data.get("model_name"),
-            max_retries=agent_data.get("max_retries", 2),
-        ))
-
-    # Parse tasks, initialize blocked_by from depends_on
-    tasks: list[SwarmTask] = []
-    for task_data in data.get("tasks", []):
-        depends_on = task_data.get("depends_on", [])
-        status = TaskStatus.blocked if depends_on else TaskStatus.pending
-        tasks.append(SwarmTask(
-            id=task_data["id"],
-            agent_id=task_data["agent_id"],
-            prompt_template=task_data.get("prompt_template", ""),
-            depends_on=depends_on,
-            blocked_by=list(depends_on),
-            input_from=task_data.get("input_from", {}),
-            status=status,
-        ))
+    agents, tasks = _preset_definitions(data)
 
     # Generate run ID
     now = datetime.now(timezone.utc)

@@ -45,6 +45,80 @@ describe("api request helper", () => {
     expect(fetchMock.mock.calls[0][1]).not.toHaveProperty("body");
   });
 
+  it("loads a preset's exact YAML source and revision", async () => {
+    const source = { yaml_text: "# keep this comment\nname: value_team\n", source: "bundled", revision: "sha256-old" };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(source), { headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await expect(api.getSwarmPresetSource("value_team")).resolves.toEqual(source);
+    expect(fetchMock).toHaveBeenCalledWith("/swarm/presets/value_team/source", expect.any(Object));
+    expect(fetchMock.mock.calls[0][1]).not.toHaveProperty("body");
+  });
+
+  it("validates the exact YAML text and returns validation layers", async () => {
+    const yamlText = "# keep order\nname: value_team\nagents: []\ntasks: []\n";
+    const validation = { valid: true, errors: [], warnings: [], layers: [[{ task_id: "task-a", agent_id: "analyst" }]] };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(validation), { headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await expect(api.validateSwarmPreset(yamlText)).resolves.toEqual(validation);
+    expect(fetchMock).toHaveBeenCalledWith("/swarm/presets/validate", expect.objectContaining({ method: "POST" }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ yaml_text: yamlText });
+  });
+
+  it("creates a user preset from the exact YAML without a revision header", async () => {
+    const yamlText = "# new preset\nname: my_new_team\nagents: []\ntasks: []\n";
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ name: "my_new_team", source: "user", revision: "sha256-new" }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await api.createSwarmPreset(yamlText);
+    expect(fetchMock).toHaveBeenCalledWith("/swarm/presets", expect.objectContaining({ method: "POST" }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ yaml_text: yamlText });
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).has("If-Match")).toBe(false);
+  });
+
+  it("saves a preset using its exact YAML and retrieved revision", async () => {
+    const yamlText = "# preserve comments\nname: value_team\nagents: []\ntasks: []\n";
+    const revision = "sha256-expected";
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ name: "value_team", source: "user", revision: "sha256-next" }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await api.saveSwarmPresetSource("value_team", yamlText, revision);
+    expect(fetchMock).toHaveBeenCalledWith("/swarm/presets/value_team/source", expect.objectContaining({ method: "PUT" }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ yaml_text: yamlText });
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get("If-Match")).toBe(revision);
+  });
+
+  it("preserves structured validation details returned with HTTP 422", async () => {
+    const detail = { valid: false, errors: ["Unknown agent 'missing'"], warnings: [], layers: [] };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ detail }), {
+        status: 422,
+        headers: { "content-type": "application/json" },
+      }),
+    ));
+    const { api } = await loadApiModule();
+
+    await expect(api.validateSwarmPreset("name: broken"))
+      .rejects.toMatchObject({ status: 422, detail });
+  });
+
   it("translates the server's message-size error into a recovery instruction", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
       detail: { code: "message_too_long", max_length: 100_000, message: "Shorten input" },

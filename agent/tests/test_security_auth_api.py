@@ -82,6 +82,85 @@ def test_remote_capability_inventory_requires_api_key_when_key_unset() -> None:
         assert client.get(path).status_code == 403, path
 
 
+def test_remote_swarm_preset_editor_endpoints_require_api_key_when_unset(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.swarm import presets
+
+    bundled_dir = tmp_path / "bundled"
+    user_dir = tmp_path / "user"
+    bundled_dir.mkdir()
+    monkeypatch.setattr(presets, "PRESETS_DIR", bundled_dir)
+    monkeypatch.setattr(presets, "USER_PRESETS_DIR", user_dir)
+    client = _remote_client()
+    yaml_text = "name: auth_team\nagents: []\ntasks: []\n"
+
+    assert client.get("/swarm/presets/auth_team/source").status_code == 403
+    assert client.post(
+        "/swarm/presets/validate", json={"yaml_text": yaml_text}
+    ).status_code == 403
+    assert client.post("/swarm/presets", json={"yaml_text": yaml_text}).status_code == 403
+    assert client.put(
+        "/swarm/presets/auth_team/source",
+        headers={"If-Match": "0" * 64},
+        json={"yaml_text": yaml_text},
+    ).status_code == 403
+    assert not user_dir.exists()
+
+
+def test_swarm_preset_editor_uses_read_auth_and_cross_site_write_auth(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.swarm import presets
+
+    monkeypatch.setenv("API_AUTH_KEY", "secret")
+    monkeypatch.setattr(api_server, "_API_KEY", "secret")
+    bundled_dir = tmp_path / "bundled"
+    user_dir = tmp_path / "user"
+    bundled_dir.mkdir()
+    monkeypatch.setattr(presets, "PRESETS_DIR", bundled_dir)
+    monkeypatch.setattr(presets, "USER_PRESETS_DIR", user_dir)
+    bundled_text = "name: auth_team\nagents: []\ntasks: []\n"
+    (bundled_dir / "auth_team.yaml").write_text(bundled_text, encoding="utf-8")
+    client = _remote_client()
+    yaml_text = "name: new_auth_team\nagents: []\ntasks: []\n"
+
+    assert client.get("/swarm/presets/auth_team/source").status_code == 401
+    assert client.post(
+        "/swarm/presets/validate", json={"yaml_text": yaml_text}
+    ).status_code == 401
+    assert client.post("/swarm/presets", json={"yaml_text": yaml_text}).status_code == 401
+    assert client.put(
+        "/swarm/presets/auth_team/source",
+        headers={"If-Match": "0" * 64},
+        json={"yaml_text": "name: auth_team\nagents: []\ntasks: []\n"},
+    ).status_code == 401
+
+    bearer = {"Authorization": "Bearer secret"}
+    cross_site = {**bearer, "Origin": "https://attacker.example"}
+    validation = client.post(
+        "/swarm/presets/validate",
+        headers=cross_site,
+        json={"yaml_text": yaml_text},
+    )
+    assert validation.status_code == 200
+    assert client.post(
+        "/swarm/presets", headers=cross_site, json={"yaml_text": yaml_text}
+    ).status_code == 403
+    assert client.put(
+        "/swarm/presets/auth_team/source",
+        headers={**cross_site, "If-Match": "0" * 64},
+        json={"yaml_text": "name: auth_team\nagents: []\ntasks: []\n"},
+    ).status_code == 403
+    assert not user_dir.exists()
+
+    created = client.post(
+        "/swarm/presets", headers=bearer, json={"yaml_text": yaml_text}
+    )
+    assert created.status_code == 201
+    assert (user_dir / "new_auth_team.yaml").read_text(encoding="utf-8") == yaml_text
+
+
 def test_docker_gateway_dev_write_allowed_only_with_compose_trust_flag(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -2,7 +2,13 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import i18n from "@/i18n";
 import { SwarmTeams } from "../SwarmTeams";
 
-const apiMock = vi.hoisted(() => ({ listSwarmPresetCatalog: vi.fn() }));
+const apiMock = vi.hoisted(() => ({
+  listSwarmPresetCatalog: vi.fn(),
+  getSwarmPresetSource: vi.fn(),
+  validateSwarmPreset: vi.fn(),
+  createSwarmPreset: vi.fn(),
+  saveSwarmPresetSource: vi.fn(),
+}));
 
 vi.mock("@/lib/api", () => ({ api: apiMock }));
 
@@ -46,6 +52,10 @@ function makeCatalog() {
 
 beforeEach(() => {
   apiMock.listSwarmPresetCatalog.mockReset();
+  apiMock.getSwarmPresetSource.mockReset();
+  apiMock.validateSwarmPreset.mockReset();
+  apiMock.createSwarmPreset.mockReset();
+  apiMock.saveSwarmPresetSource.mockReset();
 });
 
 beforeAll(async () => { await i18n.changeLanguage("en"); });
@@ -108,4 +118,115 @@ it("shows loading, empty, and recoverable error states", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("Catalog unavailable");
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await waitFor(() => expect(apiMock.listSwarmPresetCatalog).toHaveBeenCalledTimes(3));
+});
+
+it("opens a bundled preset, validates the exact YAML, previews its layers, and saves with its revision", async () => {
+  const yamlText = "# keep comments and order\nname: alpha_team\nagents: []\ntasks: []\n";
+  apiMock.listSwarmPresetCatalog.mockResolvedValue(makeCatalog());
+  apiMock.getSwarmPresetSource.mockResolvedValue({ yaml_text: yamlText, source: "bundled", revision: "rev-bundled" });
+  apiMock.validateSwarmPreset.mockResolvedValue({
+    valid: true,
+    errors: [],
+    warnings: ["No optional description was set."],
+    layers: [[{ task_id: "research", agent_id: "analyst" }], [{ task_id: "summary", agent_id: "analyst" }]],
+  });
+  apiMock.saveSwarmPresetSource.mockResolvedValue(undefined);
+  render(<SwarmTeams />);
+
+  const team = (await screen.findByText("Alpha Team")).closest("article");
+  fireEvent.click(within(team!).getByRole("button", { name: "Edit YAML" }));
+  const editor = await screen.findByRole("region", { name: "Preset YAML editor" });
+  const yaml = within(editor).getByRole("textbox", { name: "YAML source" });
+  await waitFor(() => expect(yaml).toHaveValue(yamlText));
+  expect(within(editor).getByRole("button", { name: "Save preset" })).toBeDisabled();
+
+  fireEvent.click(within(editor).getByRole("button", { name: "Validate" }));
+  expect(await within(editor).findByText("No optional description was set.")).toBeInTheDocument();
+  expect(within(editor).getByText("research")).toBeInTheDocument();
+  expect(within(editor).getByText("summary")).toBeInTheDocument();
+  expect(within(editor).getByRole("button", { name: "Save preset" })).toBeEnabled();
+
+  fireEvent.click(within(editor).getByRole("button", { name: "Save preset" }));
+  await waitFor(() => expect(apiMock.saveSwarmPresetSource).toHaveBeenCalledWith("alpha_team", yamlText, "rev-bundled"));
+});
+
+it("creates a new user preset only after successful validation", async () => {
+  const yamlText = "# new team\nname: fresh_team\nagents: []\ntasks: []\n";
+  apiMock.listSwarmPresetCatalog.mockResolvedValue(makeCatalog());
+  apiMock.validateSwarmPreset.mockResolvedValue({ valid: true, errors: [], warnings: [], layers: [] });
+  apiMock.createSwarmPreset.mockResolvedValue(undefined);
+  render(<SwarmTeams />);
+
+  fireEvent.click(await screen.findByRole("button", { name: "New preset" }));
+  const editor = await screen.findByRole("region", { name: "Preset YAML editor" });
+  const yaml = within(editor).getByRole("textbox", { name: "YAML source" });
+  fireEvent.change(yaml, { target: { value: yamlText } });
+  fireEvent.click(within(editor).getByRole("button", { name: "Validate" }));
+  await waitFor(() => expect(apiMock.validateSwarmPreset).toHaveBeenCalledWith(yamlText));
+  const editedYaml = `${yamlText}# changed after preview\n`;
+  fireEvent.change(yaml, { target: { value: editedYaml } });
+  expect(within(editor).getByRole("button", { name: "Save preset" })).toBeDisabled();
+  fireEvent.click(within(editor).getByRole("button", { name: "Validate" }));
+  await waitFor(() => expect(apiMock.validateSwarmPreset).toHaveBeenLastCalledWith(editedYaml));
+  fireEvent.click(within(editor).getByRole("button", { name: "Save preset" }));
+
+  await waitFor(() => expect(apiMock.createSwarmPreset).toHaveBeenCalledWith(editedYaml));
+  expect(apiMock.saveSwarmPresetSource).not.toHaveBeenCalled();
+});
+
+it("shows backend validation errors, warnings, and any available layers without enabling save", async () => {
+  apiMock.listSwarmPresetCatalog.mockResolvedValue(makeCatalog());
+  apiMock.getSwarmPresetSource.mockResolvedValue({ yaml_text: "name: alpha_team\n", source: "user", revision: "rev-1" });
+  apiMock.validateSwarmPreset.mockRejectedValue({
+    status: 422,
+    detail: {
+      valid: false,
+      errors: ["Unknown agent 'missing'"],
+      warnings: ["Prompt template has no placeholders."],
+      layers: [[{ task_id: "research", agent_id: "missing" }]],
+    },
+  });
+  render(<SwarmTeams />);
+
+  const team = (await screen.findByText("Alpha Team")).closest("article");
+  fireEvent.click(within(team!).getByRole("button", { name: "Edit YAML" }));
+  const editor = await screen.findByRole("region", { name: "Preset YAML editor" });
+  fireEvent.click(within(editor).getByRole("button", { name: "Validate" }));
+
+  expect(await within(editor).findByText("Unknown agent 'missing'")).toBeInTheDocument();
+  expect(within(editor).getByText("Prompt template has no placeholders.")).toBeInTheDocument();
+  expect(within(editor).getByText("research")).toBeInTheDocument();
+  expect(within(editor).getByRole("button", { name: "Save preset" })).toBeDisabled();
+});
+
+it("keeps the draft when a save conflicts, fetches the latest source, and makes overwrite explicit", async () => {
+  const draft = "# my reviewed draft\nname: alpha_team\nagents: []\ntasks: []\n";
+  const latest = "# newer server copy\nname: alpha_team\nagents: []\ntasks: []\n";
+  apiMock.listSwarmPresetCatalog.mockResolvedValue(makeCatalog());
+  apiMock.getSwarmPresetSource
+    .mockResolvedValueOnce({ yaml_text: draft, source: "user", revision: "rev-old" })
+    .mockResolvedValueOnce({ yaml_text: latest, source: "user", revision: "rev-latest" });
+  apiMock.validateSwarmPreset.mockResolvedValue({ valid: true, errors: [], warnings: [], layers: [] });
+  apiMock.saveSwarmPresetSource.mockRejectedValueOnce({ status: 409, message: "Conflict" }).mockResolvedValue(undefined);
+  render(<SwarmTeams />);
+
+  const team = (await screen.findByText("Alpha Team")).closest("article");
+  fireEvent.click(within(team!).getByRole("button", { name: "Edit YAML" }));
+  const editor = await screen.findByRole("region", { name: "Preset YAML editor" });
+  const yaml = within(editor).getByRole("textbox", { name: "YAML source" });
+  await waitFor(() => expect(yaml).toHaveValue(draft));
+  fireEvent.change(yaml, { target: { value: draft } });
+  fireEvent.click(within(editor).getByRole("button", { name: "Validate" }));
+  await waitFor(() => expect(within(editor).getByRole("button", { name: "Save preset" })).toBeEnabled());
+  fireEvent.click(within(editor).getByRole("button", { name: "Save preset" }));
+
+  const conflictAlert = await within(editor).findByRole("alert");
+  expect(conflictAlert).toHaveTextContent("Preset changed on the server.");
+  expect(conflictAlert).toHaveTextContent("Your draft is preserved.");
+  expect(yaml).toHaveValue(draft);
+  expect(within(editor).getByLabelText("Latest server source")).toHaveTextContent("# newer server copy");
+  expect(apiMock.getSwarmPresetSource).toHaveBeenCalledTimes(2);
+
+  fireEvent.click(within(editor).getByRole("button", { name: "Save draft over latest" }));
+  await waitFor(() => expect(apiMock.saveSwarmPresetSource).toHaveBeenLastCalledWith("alpha_team", draft, "rev-latest"));
 });
