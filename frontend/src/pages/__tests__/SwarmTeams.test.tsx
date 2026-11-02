@@ -69,7 +69,6 @@ it("shows task prompts, ownership, dependencies, inputs, and every team variant"
   expect(screen.getByText("Lead analyst")).toBeInTheDocument();
   expect(screen.getByText(/task-market/)).toBeInTheDocument();
   expect(screen.getByText("Alpha Team")).toBeInTheDocument();
-  expect(screen.getByText("Beta Team")).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: /Agents/ }));
   const alphaCard = screen.getByText("Lead analyst").closest("article");
@@ -96,11 +95,15 @@ it("shows task prompts, ownership, dependencies, inputs, and every team variant"
   expect(card.getByText("technical-analysis")).toBeInTheDocument();
   expect(card.getByText("Max iterations")).toBeInTheDocument();
   expect(card.getByText("7")).toBeInTheDocument();
-  expect(screen.getByText("Assess downside only.")).toBeInTheDocument();
-  expect(screen.getByText("Risk analyst")).toBeInTheDocument();
-  expect(screen.getByText("Max iterations")).toBeInTheDocument();
+  expect(screen.queryByText("Assess downside only.")).not.toBeInTheDocument();
   expect(screen.queryByText("Timeout (seconds)")).not.toBeInTheDocument();
   expect(screen.queryByText("Max retries")).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "My presets" }));
+  expect(await screen.findByText("Beta Team")).toBeInTheDocument();
+  expect(screen.getByText("Assess downside only.")).toBeInTheDocument();
+  expect(screen.getByText("Risk analyst")).toBeInTheDocument();
+  expect(screen.queryByText("Alpha Team")).not.toBeInTheDocument();
 });
 
 it("shows loading, empty, and recoverable error states", async () => {
@@ -148,6 +151,11 @@ it("opens a bundled preset, validates the exact YAML, previews its layers, and s
 
   fireEvent.click(within(editor).getByRole("button", { name: "Save preset" }));
   await waitFor(() => expect(apiMock.saveSwarmPresetSource).toHaveBeenCalledWith("alpha_team", yamlText, "rev-bundled"));
+
+  expect(screen.getByRole("button", { name: "My presets" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.queryByRole("region", { name: "Preset YAML editor" })).not.toBeInTheDocument();
+  expect(await screen.findByText("Beta Team")).toBeInTheDocument();
+  expect(screen.queryByText("Alpha Team")).not.toBeInTheDocument();
 });
 
 it("creates a new user preset only after successful validation", async () => {
@@ -172,6 +180,10 @@ it("creates a new user preset only after successful validation", async () => {
 
   await waitFor(() => expect(apiMock.createSwarmPreset).toHaveBeenCalledWith(editedYaml));
   expect(apiMock.saveSwarmPresetSource).not.toHaveBeenCalled();
+
+  expect(screen.getByRole("button", { name: "My presets" })).toHaveAttribute("aria-pressed", "true");
+  await waitFor(() => expect(apiMock.listSwarmPresetCatalog).toHaveBeenCalledTimes(2));
+  expect(await screen.findByText("Beta Team")).toBeInTheDocument();
 });
 
 it("shows backend validation errors, warnings, and any available layers without enabling save", async () => {
@@ -226,7 +238,60 @@ it("keeps the draft when a save conflicts, fetches the latest source, and makes 
   expect(yaml).toHaveValue(draft);
   expect(within(editor).getByLabelText("Latest server source")).toHaveTextContent("# newer server copy");
   expect(apiMock.getSwarmPresetSource).toHaveBeenCalledTimes(2);
+  expect(screen.getByRole("button", { name: "System" })).toHaveAttribute("aria-pressed", "true");
 
   fireEvent.click(within(editor).getByRole("button", { name: "Save draft over latest" }));
   await waitFor(() => expect(apiMock.saveSwarmPresetSource).toHaveBeenLastCalledWith("alpha_team", draft, "rev-latest"));
+  expect(await screen.findByRole("button", { name: "My presets" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.queryByRole("region", { name: "Preset YAML editor" })).not.toBeInTheDocument();
+});
+
+it("splits sources into tabs, shows an effective override only in My presets, and toggles views in both tabs", async () => {
+  apiMock.listSwarmPresetCatalog.mockResolvedValue([
+    { name: "gamma_team", title: "Gamma Team", source: "bundled", agents: [{ id: "analyst", role: "Lead analyst", instructions: "Bundled instructions." }], tasks: [] },
+    { name: "alpha_team", title: "Alpha Override", source: "user", agents: [{ id: "reviewer", role: "Override reviewer", instructions: "Override instructions." }], tasks: [] },
+    { name: "beta_team", title: "Beta Team", source: "user", agents: [{ id: "risk", role: "Risk analyst", instructions: "Risk instructions." }], tasks: [] },
+  ]);
+  render(<SwarmTeams />);
+
+  expect(await screen.findByText("Gamma Team")).toBeInTheDocument();
+  expect(screen.queryByText("Alpha Override")).not.toBeInTheDocument();
+  expect(screen.queryByText("Beta Team")).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "My presets" }));
+  expect(await screen.findByText("Alpha Override")).toBeInTheDocument();
+  expect(screen.getAllByText("Alpha Override")).toHaveLength(1);
+  expect(screen.getByText("Beta Team")).toBeInTheDocument();
+  expect(screen.queryByText("Gamma Team")).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Agents" }));
+  expect(screen.getByText("Override instructions.")).toBeInTheDocument();
+  expect(screen.getByText("Risk instructions.")).toBeInTheDocument();
+  expect(screen.queryByText("Bundled instructions.")).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "System" }));
+  expect(await screen.findByText("Bundled instructions.")).toBeInTheDocument();
+  expect(screen.queryByText("Override instructions.")).not.toBeInTheDocument();
+  expect(screen.queryByText("Risk instructions.")).not.toBeInTheDocument();
+});
+
+it("offers New preset in both tabs and shows localized empty states per source", async () => {
+  apiMock.listSwarmPresetCatalog.mockResolvedValue([
+    { name: "alpha_team", title: "Alpha Team", source: "bundled", agents: [], tasks: [] },
+  ]);
+  render(<SwarmTeams />);
+
+  expect(await screen.findByText("Alpha Team")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "New preset" })).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "My presets" }));
+  expect(await screen.findByText("You have no presets yet.")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "New preset" })).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Agents" }));
+  expect(screen.getByText("No agents in your presets.")).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "System" }));
+  fireEvent.click(screen.getByRole("button", { name: "Agents" }));
+  expect(screen.getByText("No agents found.")).toBeInTheDocument();
 });

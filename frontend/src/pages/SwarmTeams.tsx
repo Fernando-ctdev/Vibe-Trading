@@ -6,6 +6,7 @@ import { api, type SwarmPresetCatalog, type SwarmPresetCatalogAgent, type SwarmP
 import { PresetYamlEditor } from "@/components/swarm/PresetYamlEditor";
 
 type CatalogView = "teams" | "agents";
+type CatalogSource = "bundled" | "user";
 
 function formatValue(value: unknown): string | null {
   if (value === undefined || value === null || value === "") return null;
@@ -145,6 +146,7 @@ export function SwarmTeams() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<CatalogView>("teams");
+  const [source, setSource] = useState<CatalogSource>("bundled");
   const [reload, setReload] = useState(0);
   const [editor, setEditor] = useState<{ preset?: Pick<SwarmPresetCatalog, "name" | "title" | "source"> } | null>(null);
 
@@ -164,7 +166,10 @@ export function SwarmTeams() {
   }, [reload, t]);
 
   const presets = catalog ?? [];
-  const agentCount = presets.reduce((sum, preset) => sum + (preset.agents?.length ?? 0), 0);
+  const visiblePresets = presets.filter((preset) => (preset.source ?? "bundled") === source);
+  const agentCount = visiblePresets.reduce((sum, preset) => sum + (preset.agents?.length ?? 0), 0);
+  const tabButtonClass = (active: boolean) =>
+    `rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`;
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -179,15 +184,23 @@ export function SwarmTeams() {
         </header>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div role="group" className="inline-flex rounded-lg border border-border/60 bg-card p-1" aria-label={t("swarmTeams.areas")}>
-            <button type="button" aria-pressed={view === "teams"} onClick={() => setView("teams")}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${view === "teams" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}>
-              {t("swarmTeams.teams")}
-            </button>
-            <button type="button" aria-pressed={view === "agents"} onClick={() => setView("agents")}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${view === "agents" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}>
-              {t("swarmTeams.agents")}
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="group" className="inline-flex rounded-lg border border-border/60 bg-card p-1" aria-label={t("swarmTeams.sources")}>
+              <button type="button" aria-pressed={source === "bundled"} onClick={() => setSource("bundled")} className={tabButtonClass(source === "bundled")}>
+                {t("swarmTeams.systemTab")}
+              </button>
+              <button type="button" aria-pressed={source === "user"} onClick={() => setSource("user")} className={tabButtonClass(source === "user")}>
+                {t("swarmTeams.myPresetsTab")}
+              </button>
+            </div>
+            <div role="group" className="inline-flex rounded-lg border border-border/60 bg-card p-1" aria-label={t("swarmTeams.areas")}>
+              <button type="button" aria-pressed={view === "teams"} onClick={() => setView("teams")} className={tabButtonClass(view === "teams")}>
+                {t("swarmTeams.teams")}
+              </button>
+              <button type="button" aria-pressed={view === "agents"} onClick={() => setView("agents")} className={tabButtonClass(view === "agents")}>
+                {t("swarmTeams.agents")}
+              </button>
+            </div>
           </div>
           <button type="button" onClick={() => setEditor({})} className="inline-flex items-center gap-2 rounded-md border border-primary/30 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
             <Plus className="h-4 w-4" aria-hidden="true" />{t("swarmTeams.newPreset")}
@@ -199,7 +212,7 @@ export function SwarmTeams() {
             key={editor.preset?.name ?? "new-preset"}
             preset={editor.preset}
             onCancel={() => setEditor(null)}
-            onSaved={() => { setEditor(null); setReload((attempt) => attempt + 1); }}
+            onSaved={() => { setEditor(null); setSource("user"); setReload((attempt) => attempt + 1); }}
           />
         )}
 
@@ -217,9 +230,9 @@ export function SwarmTeams() {
             </button>
           </section>
         ) : view === "teams" ? (
-          presets.length ? (
+          visiblePresets.length ? (
             <section aria-label={t("swarmTeams.teams")} className="grid gap-4">
-              {presets.map((preset, presetIndex) => (
+              {visiblePresets.map((preset, presetIndex) => (
                 <article key={`${preset.name}:${presetIndex}`} className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
                   <header className="border-s-2 border-primary/70 p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -247,14 +260,14 @@ export function SwarmTeams() {
                 </article>
               ))}
             </section>
-          ) : <p role="status" className="rounded-xl border border-dashed border-border/70 p-8 text-center text-sm text-muted-foreground">{t("swarmTeams.noTeams")}</p>
+          ) : <p role="status" className="rounded-xl border border-dashed border-border/70 p-8 text-center text-sm text-muted-foreground">{source === "user" ? t("swarmTeams.noMyTeams") : t("swarmTeams.noTeams")}</p>
         ) : agentCount ? (
           <section aria-label={t("swarmTeams.agents")} className="grid gap-4 md:grid-cols-2">
-            {presets.flatMap((preset, presetIndex) => (preset.agents ?? []).map((agent, agentIndex) => (
+            {visiblePresets.flatMap((preset, presetIndex) => (preset.agents ?? []).map((agent, agentIndex) => (
               <AgentCard key={`${preset.name}:${agent.id ?? "agent"}:${presetIndex}:${agentIndex}`} agent={agent} preset={preset} t={t} />
             )))}
           </section>
-        ) : <p role="status" className="rounded-xl border border-dashed border-border/70 p-8 text-center text-sm text-muted-foreground">{t("swarmTeams.noAgents")}</p>}
+        ) : <p role="status" className="rounded-xl border border-dashed border-border/70 p-8 text-center text-sm text-muted-foreground">{source === "user" ? t("swarmTeams.noMyAgents") : t("swarmTeams.noAgents")}</p>}
       </div>
     </div>
   );
