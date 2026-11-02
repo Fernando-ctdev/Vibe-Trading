@@ -30,7 +30,8 @@
       "settings": "Configure modelos, fontes de dados e conexões de corretoras.",
       "pixelOffice": "Planeje e atribua tarefas de pesquisa. A atribuição não inicia a execução; os cargos são rótulos e não concedem permissões de negociação.",
       "paperTrading": "Teste operações diárias com recursos fictícios. Nenhuma ordem é enviada à corretora. Os resultados excluem dividendos em dinheiro e não representam retorno total.",
-      "swarmTeams": "Consulte as predefinições de times e suas definições de agentes."
+      "swarmTeams": "Consulte as predefinições de times e suas definições de agentes.",
+      "skills": "Explore skills embutidas e do usuário e gerencie seus arquivos SKILL.md."
     },
     "instructions": {
       "reports": "Primeiro peça ao assistente um backtest de uma estratégia e abra os resultados aqui. Baixe PDFs e documentos gerados no chat na conversa original.",
@@ -43,7 +44,8 @@
       "settings": "Configure um modelo para começar. Adicione dados ou conexões de corretoras conforme necessário; pesquisas com dados públicos de mercado não exigem conta em corretora.",
       "pixelOffice": "Planeje e atribua tarefas de pesquisa. A atribuição não inicia a execução; os cargos são rótulos e não concedem permissões de negociação.",
       "paperTrading": "Somente candles diários completos são liquidados. As estratégias leem dias anteriores e executam no fechamento do dia indicado. Aguarde 30 minutos após o fechamento regular; nenhuma execução automática é agendada.",
-      "swarmTeams": "Veja os planos, prompts, dependências e configurações declaradas dos agentes."
+      "swarmTeams": "Veja os planos, prompts, dependências e configurações declaradas dos agentes.",
+      "skills": "Skills embutidas são somente leitura. Crie ou edite skills no seu diretório de usuário."
     }
   },
   "layout": {
@@ -76,7 +78,8 @@
     "sessionsLoadFailed": "Não foi possível carregar as conversas.",
     "pixelOffice": "Escritório pixel",
     "paperTrading": "Negociação simulada",
-    "swarmTeams": "Times e agentes"
+    "swarmTeams": "Times e agentes",
+    "skills": "Skills"
   },
   "runtime": {
     "monitorBadge": "Monitor de Runtime",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "Salvar rascunho sobre a versão mais recente",
     "savePreset": "Salvar preset",
     "saving": "Salvando…",
-    "cancelEdit": "Cancelar"
+    "cancelEdit": "Cancelar",
+    "visualTab": "Visual",
+    "yamlTab": "YAML",
+    "editModeLabel": "Modo de edição",
+    "canvasLabel": "Grafo de tarefas",
+    "canvasInspector": "Inspetor",
+    "canvasUnavailable": "A edição visual não está disponível para este documento.",
+    "canvasUnavailableParse": "Não foi possível interpretar o YAML.",
+    "canvasUnavailableStructure": "Este preset não usa a estrutura esperada de agents/tasks.",
+    "canvasUnavailableAlias": "Este documento usa âncoras ou apelidos YAML que impedem a edição visual segura.",
+    "canvasUnavailableHint": "Seu conteúdo não foi alterado; edite-o no editor YAML.",
+    "useYamlEditor": "Usar o editor YAML",
+    "selectTask": "Selecionar",
+    "selectTaskHint": "Selecione uma tarefa no grafo para editar os detalhes.",
+    "taskDetails": "Detalhes da tarefa",
+    "addTask": "Nova tarefa",
+    "addAgent": "Novo agente",
+    "newAgentOption": "Novo agente…",
+    "agentSection": "Agente",
+    "agentSelect": "Agente",
+    "removeAgent": "Remover agente",
+    "removeAgentBlocked": "Este agente ainda é referenciado por tarefas. Reatribua essas tarefas antes de removê-lo.",
+    "roleLabel": "Papel",
+    "systemPromptLabel": "System prompt",
+    "removeValue": "Remover valor",
+    "addValue": "Adicionar",
+    "addInputMapping": "Adicionar mapeamento de entrada",
+    "inputKeyLabel": "Chave de entrada",
+    "removeDependency": "Remover dependência",
+    "addDependency": "Adicionar dependência",
+    "removeTask": "Remover tarefa",
+    "graphConflict": "Salvamento bloqueado: os mapeamentos de entrada estão inconsistentes com o grafo.",
+    "graphConflictMissingSource": "A tarefa referenciada não existe mais. Remapeie a entrada no inspetor ou remova o mapeamento.",
+    "graphConflictHint": "Cada valor de input_from deve apontar para uma tarefa upstream (dependência direta ou transitiva). Corrija religando a dependência ou removendo/remeando o mapeamento de entrada.",
+    "relinkDependency": "Religar dependência",
+    "removeMapping": "Remover mapeamento",
+    "graphSaveBlocked": "Corrija os mapeamentos de entrada sinalizados no grafo antes de salvar.",
+    "canvasEmptyTasks": "Nenhuma tarefa ainda. Adicione a primeira para construir o grafo."
+  },
+  "skills": {
+    "badge": "Skills",
+    "title": "Skills",
+    "subtitle": "Explore skills embutidas e do usuário. As embutidas são somente leitura; crie, edite e exclua as suas.",
+    "loading": "Carregando catálogo de skills…",
+    "loadingSource": "Carregando skill…",
+    "unavailable": "Catálogo de skills indisponível",
+    "retry": "Tentar novamente",
+    "emptyCatalog": "Nenhuma skill encontrada.",
+    "source": {
+      "user": "Usuário",
+      "bundled": "Embutida"
+    },
+    "readOnly": "Somente leitura",
+    "open": "Abrir",
+    "newSkill": "Nova skill",
+    "creatingTitle": "Nova skill de usuário",
+    "contentLabel": "Conteúdo do SKILL.md",
+    "create": "Criar skill",
+    "edit": "Editar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "created": "Skill criada.",
+    "saved": "Skill salva.",
+    "deleted": "Skill excluída.",
+    "actionFailed": "A ação falhou.",
+    "error": {
+      "nameCollision": "Uma skill embutida ou de usuário já declara este nome. Escolha outro nome.",
+      "revisionStale": "Esta skill mudou no servidor. Seu rascunho foi preservado.",
+      "auxiliaryFiles": "A exclusão foi recusada porque o diretório da skill contém arquivos de apoio."
+    },
+    "discardDraftReload": "Descartar rascunho e carregar a versão mais recente",
+    "dismiss": "Dispensar",
+    "viewingTitle": "Visualizando {{name}}",
+    "editingTitle": "Editando {{name}}"
   }
 }

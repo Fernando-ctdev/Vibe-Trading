@@ -30,7 +30,8 @@
       "settings": "Configure models, data sources, and broker connections.",
       "pixelOffice": "Plan and assign research tasks. Assignment does not start execution; ranks are labels and grant no trading permissions.",
       "paperTrading": "Test daily trades with simulated funds. No broker orders are sent. Results exclude cash dividends and are not a total-return record.",
-      "swarmTeams": "Browse the team presets and their agent definitions."
+      "swarmTeams": "Browse the team presets and their agent definitions.",
+      "skills": "Browse bundled and user skills and manage your own SKILL.md files."
     },
     "instructions": {
       "reports": "Ask the research assistant to backtest a strategy first, then open its results here. Download PDFs and other chat-generated documents from the original conversation.",
@@ -43,7 +44,8 @@
       "settings": "Configure a model to start. Add data sources or broker connections as your task needs them; public-market research does not require a broker account.",
       "pixelOffice": "Plan and assign research tasks. Assignment does not start execution; ranks are labels and grant no trading permissions.",
       "paperTrading": "Only completed daily bars can settle. Strategies see prior days only and fill at the execution day’s close. Wait until 30 minutes after the regular market close; no background execution is scheduled.",
-      "swarmTeams": "Read the declared team plans, prompts, dependencies, and agent configuration."
+      "swarmTeams": "Read the declared team plans, prompts, dependencies, and agent configuration.",
+      "skills": "Bundled skills are read-only. Create or edit skills in your user directory."
     }
   },
   "layout": {
@@ -76,7 +78,8 @@
     "sessionsLoadFailed": "Cannot load conversations.",
     "pixelOffice": "Pixel Office",
     "paperTrading": "Paper trading",
-    "swarmTeams": "Swarm teams"
+    "swarmTeams": "Swarm teams",
+    "skills": "Skills"
   },
   "runtime": {
     "monitorBadge": "Runtime Monitor",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "Save draft over latest",
     "savePreset": "Save preset",
     "saving": "Saving…",
-    "cancelEdit": "Cancel"
+    "cancelEdit": "Cancel",
+    "visualTab": "Visual",
+    "yamlTab": "YAML",
+    "editModeLabel": "Edit mode",
+    "canvasLabel": "Task graph",
+    "canvasInspector": "Inspector",
+    "canvasUnavailable": "Visual editing is unavailable for this document.",
+    "canvasUnavailableParse": "The YAML could not be parsed.",
+    "canvasUnavailableStructure": "This preset does not use the expected agents/tasks structure.",
+    "canvasUnavailableAlias": "This document uses YAML anchors or aliases that prevent safe visual editing.",
+    "canvasUnavailableHint": "Your content was not modified; edit it in the YAML editor.",
+    "useYamlEditor": "Use the YAML editor",
+    "selectTask": "Select",
+    "selectTaskHint": "Select a task in the graph to edit its details.",
+    "taskDetails": "Task details",
+    "addTask": "New task",
+    "addAgent": "New agent",
+    "newAgentOption": "New agent…",
+    "agentSection": "Agent",
+    "agentSelect": "Agent",
+    "removeAgent": "Remove agent",
+    "removeAgentBlocked": "This agent is still referenced by tasks. Reassign those tasks before removing it.",
+    "roleLabel": "Role",
+    "systemPromptLabel": "System prompt",
+    "removeValue": "Remove value",
+    "addValue": "Add",
+    "addInputMapping": "Add input mapping",
+    "inputKeyLabel": "Input key",
+    "removeDependency": "Remove dependency",
+    "addDependency": "Add dependency",
+    "removeTask": "Remove task",
+    "graphConflict": "Save blocked: input mappings are inconsistent with the graph.",
+    "graphConflictMissingSource": "The referenced task no longer exists. Remap the input in the inspector or remove the mapping.",
+    "graphConflictHint": "Each input_from value must point to an upstream task (a direct or transitive dependency). Fix it by re-linking the dependency or by removing/remapping the input.",
+    "relinkDependency": "Re-link dependency",
+    "removeMapping": "Remove mapping",
+    "graphSaveBlocked": "Fix the input mappings flagged in the graph before saving.",
+    "canvasEmptyTasks": "No tasks yet. Add the first task to build the graph."
+  },
+  "skills": {
+    "badge": "Skills",
+    "title": "Skills",
+    "subtitle": "Browse bundled and user skills. Bundled skills are read-only; create, edit, and delete your own.",
+    "loading": "Loading skill catalog…",
+    "loadingSource": "Loading skill…",
+    "unavailable": "Skill catalog unavailable",
+    "retry": "Retry",
+    "emptyCatalog": "No skills found.",
+    "source": {
+      "user": "User",
+      "bundled": "Bundled"
+    },
+    "readOnly": "Read-only",
+    "open": "Open",
+    "newSkill": "New skill",
+    "creatingTitle": "New user skill",
+    "contentLabel": "SKILL.md content",
+    "create": "Create skill",
+    "edit": "Edit",
+    "save": "Save",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "close": "Close",
+    "created": "Skill created.",
+    "saved": "Skill saved.",
+    "deleted": "Skill deleted.",
+    "actionFailed": "The action failed.",
+    "error": {
+      "nameCollision": "A bundled or user skill already declares this name. Choose a different name.",
+      "revisionStale": "This skill changed on the server. Your draft is preserved.",
+      "auxiliaryFiles": "Deletion was refused because the skill directory contains supporting files."
+    },
+    "discardDraftReload": "Discard draft and load latest",
+    "dismiss": "Dismiss",
+    "viewingTitle": "Viewing {{name}}",
+    "editingTitle": "Editing {{name}}"
   }
 }

@@ -338,3 +338,112 @@ describe("API failure recovery", () => {
     expect(fetch).toHaveBeenCalledOnce();
   });
 });
+
+describe("skills and tools catalog API", () => {
+  beforeEach(() => {
+    vi.stubGlobal("localStorage", { getItem: () => "", setItem: vi.fn(), removeItem: vi.fn() });
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it("loads the authenticated skill catalog without a body", async () => {
+    const catalog = [{ name: "alpha_tool", source: "user", description: "User alpha." }];
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(catalog), { headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await expect(api.listSkillCatalog()).resolves.toEqual(catalog);
+    expect(fetchMock).toHaveBeenCalledWith("/skills/catalog", expect.any(Object));
+    expect(fetchMock.mock.calls[0][1]).not.toHaveProperty("body");
+  });
+
+  it("loads a skill's exact SKILL.md content and revision", async () => {
+    const source = { name: "alpha_tool", source: "bundled", content: "---\nname: alpha_tool\n---\nBody\n", revision: "sha-old" };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(source), { headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await expect(api.getSkillSource("alpha_tool")).resolves.toEqual(source);
+    expect(fetchMock).toHaveBeenCalledWith("/skills/alpha_tool/source", expect.any(Object));
+    expect(fetchMock.mock.calls[0][1]).not.toHaveProperty("body");
+  });
+
+  it("creates a skill from exact content without a revision header", async () => {
+    const content = "---\nname: my_skill\n---\nBody\n";
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ name: "my_skill", source: "user" }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await api.createSkill(content);
+    expect(fetchMock).toHaveBeenCalledWith("/skills", expect.objectContaining({ method: "POST" }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ content });
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).has("If-Match")).toBe(false);
+  });
+
+  it("saves a skill source with its revision and deletes with If-Match", async () => {
+    const content = "---\nname: my_skill\ndescription: updated\n---\nBody\n";
+    // Response bodies are single-use; each call needs its own fresh Response.
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ name: "my_skill", source: "user" }), {
+          headers: { "content-type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ name: "my_skill", deleted: true }), {
+          headers: { "content-type": "application/json" },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await api.saveSkillSource("my_skill", content, "sha-expected");
+    expect(fetchMock).toHaveBeenCalledWith("/skills/my_skill/source", expect.objectContaining({ method: "PUT" }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ content });
+    expect(new Headers(fetchMock.mock.calls[0][1].headers).get("If-Match")).toBe("sha-expected");
+
+    await api.deleteSkillSource("my_skill", "sha-expected");
+    expect(fetchMock).toHaveBeenLastCalledWith("/skills/my_skill/source", expect.objectContaining({ method: "DELETE" }));
+    expect(new Headers(fetchMock.mock.calls[1][1].headers).get("If-Match")).toBe("sha-expected");
+    expect(fetchMock.mock.calls[1][1]).not.toHaveProperty("body");
+  });
+
+  it("loads the tool catalog with names and descriptions only", async () => {
+    const tools = [{ name: "read_file", description: "Reads a file." }];
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(tools), { headers: { "content-type": "application/json" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { api } = await loadApiModule();
+
+    await expect(api.listToolCatalog()).resolves.toEqual(tools);
+    expect(fetchMock).toHaveBeenCalledWith("/tools/catalog", expect.any(Object));
+    expect(fetchMock.mock.calls[0][1]).not.toHaveProperty("body");
+  });
+
+  it("surfaces structured conflict codes for skill collisions", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({
+        detail: { code: "name_collision", message: "A bundled skill already declares the name 'my_skill'" },
+      }), { status: 409, headers: { "content-type": "application/json" } })),
+    );
+    const { api } = await loadApiModule();
+
+    await expect(api.createSkill("---\nname: my_skill\n---\n")).rejects.toMatchObject({
+      status: 409,
+      code: "name_collision",
+      message: expect.stringContaining("already declares"),
+    } satisfies Partial<ApiError>);
+  });
+});

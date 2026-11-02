@@ -30,7 +30,8 @@
       "settings": "Configura modelos, fuentes de datos y conexiones de brókeres.",
       "pixelOffice": "Planifica y asigna tareas de investigación. La asignación no inicia la ejecución; los rangos son etiquetas y no conceden permisos de negociación.",
       "paperTrading": "Prueba operaciones diarias con fondos ficticios. No se envían órdenes al bróker. Los resultados excluyen dividendos en efectivo y no representan la rentabilidad total.",
-      "swarmTeams": "Consulta los presets de equipo y sus definiciones de agentes."
+      "swarmTeams": "Consulta los presets de equipo y sus definiciones de agentes.",
+      "skills": "Explora habilidades incluidas y de usuario y gestiona tus archivos SKILL.md."
     },
     "instructions": {
       "reports": "Primero pide al asistente un backtest de una estrategia y abre aquí sus resultados. Descarga los PDF y documentos generados en el chat desde la conversación original.",
@@ -43,7 +44,8 @@
       "settings": "Configura un modelo para empezar. Añade datos o conexiones de brókeres según lo necesites; investigar datos públicos de mercado no requiere una cuenta de bróker.",
       "pixelOffice": "Planifica y asigna tareas de investigación. La asignación no inicia la ejecución; los rangos son etiquetas y no conceden permisos de negociación.",
       "paperTrading": "Solo se liquidan velas diarias completas. Las estrategias leen días anteriores y ejecutan al cierre del día indicado. Espera 30 minutos tras el cierre habitual; no se programa ejecución automática.",
-      "swarmTeams": "Revisa los planes, prompts, dependencias y configuraciones declaradas de los agentes."
+      "swarmTeams": "Revisa los planes, prompts, dependencias y configuraciones declaradas de los agentes.",
+      "skills": "Las habilidades incluidas son de solo lectura. Crea o edita habilidades en tu directorio de usuario."
     }
   },
   "layout": {
@@ -76,7 +78,8 @@
     "sessionsLoadFailed": "No se pueden cargar las conversaciones.",
     "pixelOffice": "Oficina de píxeles",
     "paperTrading": "Trading simulado",
-    "swarmTeams": "Equipos Swarm"
+    "swarmTeams": "Equipos Swarm",
+    "skills": "Habilidades"
   },
   "runtime": {
     "monitorBadge": "Monitor de Runtime",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "Guardar borrador sobre la última versión",
     "savePreset": "Guardar preset",
     "saving": "Guardando…",
-    "cancelEdit": "Cancelar"
+    "cancelEdit": "Cancelar",
+    "visualTab": "Visual",
+    "yamlTab": "YAML",
+    "editModeLabel": "Modo de edición",
+    "canvasLabel": "Grafo de tareas",
+    "canvasInspector": "Inspector",
+    "canvasUnavailable": "La edición visual no está disponible para este documento.",
+    "canvasUnavailableParse": "No se pudo analizar el YAML.",
+    "canvasUnavailableStructure": "Este preset no usa la estructura esperada de agents/tasks.",
+    "canvasUnavailableAlias": "Este documento usa anclas o alias de YAML que impiden una edición visual segura.",
+    "canvasUnavailableHint": "Tu contenido no fue modificado; edítalo en el editor YAML.",
+    "useYamlEditor": "Usar el editor YAML",
+    "selectTask": "Seleccionar",
+    "selectTaskHint": "Selecciona una tarea del grafo para editar sus detalles.",
+    "taskDetails": "Detalles de la tarea",
+    "addTask": "Nueva tarea",
+    "addAgent": "Nuevo agente",
+    "newAgentOption": "Nuevo agente…",
+    "agentSection": "Agente",
+    "agentSelect": "Agente",
+    "removeAgent": "Eliminar agente",
+    "removeAgentBlocked": "Este agente todavía es referenciado por tareas. Reasigna esas tareas antes de eliminarlo.",
+    "roleLabel": "Rol",
+    "systemPromptLabel": "System prompt",
+    "removeValue": "Eliminar valor",
+    "addValue": "Añadir",
+    "addInputMapping": "Añadir mapeo de entrada",
+    "inputKeyLabel": "Clave de entrada",
+    "removeDependency": "Eliminar dependencia",
+    "addDependency": "Añadir dependencia",
+    "removeTask": "Eliminar tarea",
+    "graphConflict": "Guardado bloqueado: los mapeos de entrada no coinciden con el grafo.",
+    "graphConflictMissingSource": "La tarea referenciada ya no existe. Remapea la entrada en el inspector o elimina el mapeo.",
+    "graphConflictHint": "Cada valor de input_from debe apuntar a una tarea upstream (dependencia directa o transitiva). Corrígelo volviendo a enlazar la dependencia o quitando/cambiando el mapeo de entrada.",
+    "relinkDependency": "Volver a enlazar dependencia",
+    "removeMapping": "Eliminar mapeo",
+    "graphSaveBlocked": "Corrige los mapeos de entrada marcados en el grafo antes de guardar.",
+    "canvasEmptyTasks": "Aún no hay tareas. Añade la primera para construir el grafo."
+  },
+  "skills": {
+    "badge": "Habilidades",
+    "title": "Habilidades",
+    "subtitle": "Explora habilidades incluidas y de usuario. Las incluidas son de solo lectura; crea, edita y elimina las tuyas.",
+    "loading": "Cargando catálogo de habilidades…",
+    "loadingSource": "Cargando habilidad…",
+    "unavailable": "Catálogo de habilidades no disponible",
+    "retry": "Reintentar",
+    "emptyCatalog": "No se encontraron habilidades.",
+    "source": {
+      "user": "Usuario",
+      "bundled": "Incluida"
+    },
+    "readOnly": "Solo lectura",
+    "open": "Abrir",
+    "newSkill": "Nueva habilidad",
+    "creatingTitle": "Nueva habilidad de usuario",
+    "contentLabel": "Contenido de SKILL.md",
+    "create": "Crear habilidad",
+    "edit": "Editar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "created": "Habilidad creada.",
+    "saved": "Habilidad guardada.",
+    "deleted": "Habilidad eliminada.",
+    "actionFailed": "La acción falló.",
+    "error": {
+      "nameCollision": "Una habilidad incluida o de usuario ya declara este nombre. Elige otro nombre.",
+      "revisionStale": "Esta habilidad cambió en el servidor. Tu borrador se conserva.",
+      "auxiliaryFiles": "La eliminación fue rechazada porque el directorio de la habilidad contiene archivos de apoyo."
+    },
+    "discardDraftReload": "Descartar borrador y cargar la última",
+    "dismiss": "Descartar",
+    "viewingTitle": "Viendo {{name}}",
+    "editingTitle": "Editando {{name}}"
   }
 }

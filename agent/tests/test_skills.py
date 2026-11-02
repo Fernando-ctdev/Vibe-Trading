@@ -68,6 +68,14 @@ class TestParseFrontmatter:
         meta, body = _parse_frontmatter(text)
         assert meta == {}
         assert body == "Body only."
+
+    def test_quoted_scalar_values(self) -> None:
+        text = "---\nname: \"q_skill\"\ndescription: 'Quoted desc'\n---\nBody"
+        meta, body = _parse_frontmatter(text)
+        assert meta["name"] == "q_skill"
+        assert meta["description"] == "Quoted desc"
+        assert body == "Body"
+
     def test_rejects_inline_fence_tail_false_positive(self) -> None:
         # Fence must stand alone on its line; a trailing --- on a value line
         # is not a fence.
@@ -188,6 +196,22 @@ class TestSkillsLoader:
             loader.get_content("my-skill")
 
         assert len(loader.skills) == 1
+
+    def test_quoted_frontmatter_name_loads_canonical_identity(
+        self, tmp_path: Path, empty_user_dir: Path
+    ) -> None:
+        """A quoted frontmatter name resolves to the same canonical identity
+        the skills API catalog uses, not to the quoted raw scalar."""
+        skill_dir = tmp_path / "quoted-dir"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            '---\nname: "quoted_skill"\ncategory: user\ndescription: quoted\n---\nBody',
+            encoding="utf-8",
+        )
+
+        loader = SkillsLoader(tmp_path, user_skills_dir=empty_user_dir)
+
+        assert [s.name for s in loader.skills] == ["quoted_skill"]
 
     def test_empty_dir(self, tmp_path: Path, empty_user_dir: Path) -> None:
         loader = SkillsLoader(tmp_path, user_skills_dir=empty_user_dir)

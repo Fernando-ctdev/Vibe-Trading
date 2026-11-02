@@ -24,7 +24,8 @@
       "settings": "配置模型、数据源和券商连接。",
       "pixelOffice": "规划和分配研究任务。分配任务不会启动执行；职级只是标签，不授予交易权限。",
       "paperTrading": "使用模拟资金测试每日交易，不向券商发送订单。结果不含现金分红，不代表总回报。",
-      "swarmTeams": "查看团队预设及其代理定义。"
+      "swarmTeams": "查看团队预设及其代理定义。",
+      "skills": "浏览内置技能和用户技能，并管理自己的 SKILL.md 文件。"
     },
     "instructions": {
       "reports": "先在研究助手中描述策略并完成回测，再到这里打开结果。聊天生成的 PDF 等文档在原对话中下载。",
@@ -37,7 +38,8 @@
       "settings": "初次使用先配置模型。按任务需要添加数据源或券商连接；研究公开行情无需连接券商账户。",
       "pixelOffice": "规划和分配研究任务。分配任务不会启动执行；职级只是标签，不授予交易权限。",
       "paperTrading": "仅结算已完成的日线。策略只读取此前数据，在执行日收盘价成交。请等正常收市后 30 分钟；不会自动安排后台执行。",
-      "swarmTeams": "查看已声明的团队计划、提示、依赖关系和代理配置。"
+      "swarmTeams": "查看已声明的团队计划、提示、依赖关系和代理配置。",
+      "skills": "内置技能为只读。请在用户目录中创建或编辑技能。"
     }
   },
   "layout": {
@@ -70,7 +72,8 @@
     "sessionsLoadFailed": "无法加载会话。",
     "pixelOffice": "像素办公室",
     "paperTrading": "模拟交易",
-    "swarmTeams": "Swarm 团队"
+    "swarmTeams": "Swarm 团队",
+    "skills": "技能"
   },
   "runtime": {
     "monitorBadge": "交易监控",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "用草稿覆盖最新版本",
     "savePreset": "保存预设",
     "saving": "正在保存…",
-    "cancelEdit": "取消"
+    "cancelEdit": "取消",
+    "visualTab": "可视化",
+    "yamlTab": "YAML",
+    "editModeLabel": "编辑模式",
+    "canvasLabel": "任务图",
+    "canvasInspector": "检查器",
+    "canvasUnavailable": "该文档不支持可视化编辑。",
+    "canvasUnavailableParse": "无法解析 YAML。",
+    "canvasUnavailableStructure": "该预设未使用预期的 agents/tasks 结构。",
+    "canvasUnavailableAlias": "该文档使用了 YAML 锚点或别名，无法安全地进行可视化编辑。",
+    "canvasUnavailableHint": "内容未被修改；请在 YAML 编辑器中编辑。",
+    "useYamlEditor": "使用 YAML 编辑器",
+    "selectTask": "选择",
+    "selectTaskHint": "在图中选择任务以编辑其详情。",
+    "taskDetails": "任务详情",
+    "addTask": "新建任务",
+    "addAgent": "新建代理",
+    "newAgentOption": "新建代理…",
+    "agentSection": "代理",
+    "agentSelect": "代理",
+    "removeAgent": "移除代理",
+    "removeAgentBlocked": "此代理仍被任务引用。请先重新分配这些任务再移除。",
+    "roleLabel": "角色",
+    "systemPromptLabel": "系统提示词",
+    "removeValue": "移除值",
+    "addValue": "添加",
+    "addInputMapping": "添加输入映射",
+    "inputKeyLabel": "输入键",
+    "removeDependency": "移除依赖",
+    "addDependency": "添加依赖",
+    "removeTask": "移除任务",
+    "graphConflict": "保存被阻止：输入映射与图不一致。",
+    "graphConflictMissingSource": "被引用的任务已不存在。请在检查器中重新映射输入或移除映射。",
+    "graphConflictHint": "每个 input_from 值必须指向上游任务（直接或传递依赖）。通过重新连接依赖或移除/更改输入映射来修复。",
+    "relinkDependency": "重新连接依赖",
+    "removeMapping": "移除映射",
+    "graphSaveBlocked": "保存前请先修复图中标记的输入映射。",
+    "canvasEmptyTasks": "还没有任务。添加第一个任务来构建图。"
+  },
+  "skills": {
+    "badge": "技能",
+    "title": "技能",
+    "subtitle": "浏览内置技能和用户技能。内置技能为只读；可创建、编辑和删除自己的技能。",
+    "loading": "正在加载技能目录…",
+    "loadingSource": "正在加载技能…",
+    "unavailable": "技能目录不可用",
+    "retry": "重试",
+    "emptyCatalog": "未找到技能。",
+    "source": {
+      "user": "用户",
+      "bundled": "内置"
+    },
+    "readOnly": "只读",
+    "open": "打开",
+    "newSkill": "新建技能",
+    "creatingTitle": "新建用户技能",
+    "contentLabel": "SKILL.md 内容",
+    "create": "创建技能",
+    "edit": "编辑",
+    "save": "保存",
+    "delete": "删除",
+    "cancel": "取消",
+    "close": "关闭",
+    "created": "技能已创建。",
+    "saved": "技能已保存。",
+    "deleted": "技能已删除。",
+    "actionFailed": "操作失败。",
+    "error": {
+      "nameCollision": "内置技能或用户技能已使用此名称。请选择其他名称。",
+      "revisionStale": "此技能已在服务器上更改。您的草稿已保留。",
+      "auxiliaryFiles": "删除被拒绝，因为技能目录包含辅助文件。"
+    },
+    "discardDraftReload": "放弃草稿并加载最新版本",
+    "dismiss": "关闭",
+    "viewingTitle": "正在查看 {{name}}",
+    "editingTitle": "正在编辑 {{name}}"
   }
 }

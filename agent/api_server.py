@@ -206,6 +206,10 @@ register_system_routes(app)
 
 from src.api.system_routes import _terminate_current_process  # noqa: F401, E402
 
+# --- Skills CRUD & tools catalog ---
+from src.api.skills_routes import register_skills_routes  # noqa: E402
+register_skills_routes(app)
+
 # --- Settings ---
 from src.api.settings_routes import register_settings_routes  # noqa: E402
 register_settings_routes(app)

@@ -16,7 +16,8 @@ _FRONTMATTER_RE = re.compile(
 def parse_frontmatter(text: str) -> tuple[Dict[str, Any], str]:
     """Parse YAML-like frontmatter and body from a markdown file.
 
-    Supports string, list (``[a, b]``), and boolean values.
+    Supports string (bare or quoted), list (``[a, b]``), and boolean values.
+    Quoted scalars have their surrounding quotes stripped.
 
     Args:
         text: Markdown text with optional ``---`` delimited frontmatter.
@@ -42,6 +43,11 @@ def parse_frontmatter(text: str) -> tuple[Dict[str, Any], str]:
         elif value.lower() in ("true", "false"):
             meta[key] = value.lower() == "true"
         else:
+            # Quoted scalar: strip the surrounding quotes, same as each item
+            # of the list branch above, so every caller sees one canonical
+            # value (e.g. a skill's frontmatter ``name``).
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+                value = value[1:-1]
             meta[key] = value
 
     body = match.group(2) or ""

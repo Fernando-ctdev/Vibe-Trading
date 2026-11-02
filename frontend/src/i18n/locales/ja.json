@@ -24,7 +24,8 @@
       "settings": "モデル、データソース、ブローカー接続を設定します。",
       "pixelOffice": "調査タスクを計画・割り当てます。割り当てでは実行は始まりません。役職はラベルであり、取引権限を付与しません。",
       "paperTrading": "仮想資金で日次取引を検証します。証券会社へ注文は送りません。現金配当を含まず、総収益ではありません。",
-      "swarmTeams": "チームプリセットとエージェント定義を確認します。"
+      "swarmTeams": "チームプリセットとエージェント定義を確認します。",
+      "skills": "同梱スキルとユーザースキルを閲覧し、独自の SKILL.md ファイルを管理します。"
     },
     "instructions": {
       "reports": "まずアシスタントに戦略のバックテストを依頼し、ここで結果を開きます。会話で作成した PDF などは元の会話からダウンロードします。",
@@ -37,7 +38,8 @@
       "settings": "まずモデルを設定します。必要に応じてデータソースやブローカー接続を追加します。公開市場のリサーチにはブローカー口座は不要です。",
       "pixelOffice": "調査タスクを計画・割り当てます。割り当てでは実行は始まりません。役職はラベルであり、取引権限を付与しません。",
       "paperTrading": "確定した日足のみを使用します。戦略は前日までのデータを読み、執行日の終値で約定します。通常の取引終了から30分お待ちください。自動実行は設定されません。",
-      "swarmTeams": "宣言されたチーム計画、プロンプト、依存関係、エージェント設定を確認します。"
+      "swarmTeams": "宣言されたチーム計画、プロンプト、依存関係、エージェント設定を確認します。",
+      "skills": "同梱スキルは読み取り専用です。ユーザーディレクトリでスキルを作成・編集します。"
     }
   },
   "layout": {
@@ -70,7 +72,8 @@
     "sessionsLoadFailed": "会話を読み込めません。",
     "pixelOffice": "ピクセルオフィス",
     "paperTrading": "模擬取引",
-    "swarmTeams": "Swarm チーム"
+    "swarmTeams": "Swarm チーム",
+    "skills": "スキル"
   },
   "runtime": {
     "monitorBadge": "取引モニター",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "下書きを最新バージョンに上書き保存",
     "savePreset": "プリセットを保存",
     "saving": "保存中…",
-    "cancelEdit": "キャンセル"
+    "cancelEdit": "キャンセル",
+    "visualTab": "ビジュアル",
+    "yamlTab": "YAML",
+    "editModeLabel": "編集モード",
+    "canvasLabel": "タスクグラフ",
+    "canvasInspector": "インスペクター",
+    "canvasUnavailable": "このドキュメントではビジュアル編集を利用できません。",
+    "canvasUnavailableParse": "YAML を解析できませんでした。",
+    "canvasUnavailableStructure": "このプリセットは期待される agents/tasks 構造を使用していません。",
+    "canvasUnavailableAlias": "このドキュメントは YAML のアンカーやエイリアスを使用しており、安全なビジュアル編集ができません。",
+    "canvasUnavailableHint": "内容は変更されていません。YAML エディターで編集してください。",
+    "useYamlEditor": "YAML エディターを使う",
+    "selectTask": "選択",
+    "selectTaskHint": "グラフでタスクを選択して詳細を編集します。",
+    "taskDetails": "タスクの詳細",
+    "addTask": "新しいタスク",
+    "addAgent": "新しいエージェント",
+    "newAgentOption": "新しいエージェント…",
+    "agentSection": "エージェント",
+    "agentSelect": "エージェント",
+    "removeAgent": "エージェントを削除",
+    "removeAgentBlocked": "このエージェントはタスクから参照されています。削除する前にタスクの割り当てを変更してください。",
+    "roleLabel": "役割",
+    "systemPromptLabel": "システムプロンプト",
+    "removeValue": "値を削除",
+    "addValue": "追加",
+    "addInputMapping": "入力マッピングを追加",
+    "inputKeyLabel": "入力キー",
+    "removeDependency": "依存関係を削除",
+    "addDependency": "依存関係を追加",
+    "removeTask": "タスクを削除",
+    "graphConflict": "保存をブロック: 入力マッピングがグラフと一致していません。",
+    "graphConflictMissingSource": "参照されたタスクは存在しません。インスペクターで入力を付け直すか、マッピングを削除してください。",
+    "graphConflictHint": "各 input_from の値は上流タスク（直接または推移的な依存）を指す必要があります。依存関係を再接続するか、入力マッピングを削除/変更してください。",
+    "relinkDependency": "依存関係を再接続",
+    "removeMapping": "マッピングを削除",
+    "graphSaveBlocked": "保存する前にグラフで警告された入力マッピングを修正してください。",
+    "canvasEmptyTasks": "タスクがまだありません。最初のタスクを追加してグラフを作成しましょう。"
+  },
+  "skills": {
+    "badge": "スキル",
+    "title": "スキル",
+    "subtitle": "同梱スキルとユーザースキルを閲覧できます。同梱スキルは読み取り専用で、自分のスキルは作成・編集・削除できます。",
+    "loading": "スキルカタログを読み込み中…",
+    "loadingSource": "スキルを読み込み中…",
+    "unavailable": "スキルカタログを利用できません",
+    "retry": "再試行",
+    "emptyCatalog": "スキルが見つかりません。",
+    "source": {
+      "user": "ユーザー",
+      "bundled": "同梱"
+    },
+    "readOnly": "読み取り専用",
+    "open": "開く",
+    "newSkill": "新しいスキル",
+    "creatingTitle": "新しいユーザースキル",
+    "contentLabel": "SKILL.md の内容",
+    "create": "スキルを作成",
+    "edit": "編集",
+    "save": "保存",
+    "delete": "削除",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "created": "スキルを作成しました。",
+    "saved": "スキルを保存しました。",
+    "deleted": "スキルを削除しました。",
+    "actionFailed": "操作に失敗しました。",
+    "error": {
+      "nameCollision": "同梱またはユーザースキルが既にこの名前を使用しています。別の名前を選んでください。",
+      "revisionStale": "このスキルはサーバー上で変更されました。下書きは保持されています。",
+      "auxiliaryFiles": "スキルディレクトリに補助ファイルが含まれているため削除できませんでした。"
+    },
+    "discardDraftReload": "下書きを破棄して最新を読み込む",
+    "dismiss": "閉じる",
+    "viewingTitle": "{{name}} を表示中",
+    "editingTitle": "{{name}} を編集中"
   }
 }

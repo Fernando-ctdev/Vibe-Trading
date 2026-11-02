@@ -24,7 +24,8 @@
       "settings": "모델, 데이터 소스, 브로커 연결을 설정합니다.",
       "pixelOffice": "리서치 작업을 계획하고 배정합니다. 배정만으로 실행되지는 않으며, 직급은 거래 권한을 부여하지 않는 표시에 불과합니다.",
       "paperTrading": "가상 자금으로 일별 거래를 테스트합니다. 증권사에 주문을 보내지 않습니다. 현금 배당을 제외하므로 총수익이 아닙니다.",
-      "swarmTeams": "팀 프리셋과 에이전트 정의를 확인합니다."
+      "swarmTeams": "팀 프리셋과 에이전트 정의를 확인합니다.",
+      "skills": "내장 스킬과 사용자 스킬을 살펴보고 자신만의 SKILL.md 파일을 관리합니다."
     },
     "instructions": {
       "reports": "먼저 도우미에게 전략 백테스트를 요청한 후 여기에서 결과를 엽니다. 대화에서 생성한 PDF 등은 원래 대화에서 다운로드하세요.",
@@ -37,7 +38,8 @@
       "settings": "먼저 모델을 설정하세요. 필요에 따라 데이터 소스나 브로커 연결을 추가하면 됩니다. 공개 시장 리서치에는 브로커 계좌가 필요하지 않습니다.",
       "pixelOffice": "리서치 작업을 계획하고 배정합니다. 배정만으로 실행되지는 않으며, 직급은 거래 권한을 부여하지 않는 표시에 불과합니다.",
       "paperTrading": "완료된 일봉만 결산합니다. 전략은 이전 날짜의 데이터만 읽고 실행일 종가로 체결됩니다. 정규장 종료 후 30분을 기다리세요. 자동 실행은 예약되지 않습니다.",
-      "swarmTeams": "선언된 팀 계획, 프롬프트, 의존성 및 에이전트 설정을 확인합니다."
+      "swarmTeams": "선언된 팀 계획, 프롬프트, 의존성 및 에이전트 설정을 확인합니다.",
+      "skills": "내장 스킬은 읽기 전용입니다. 사용자 디렉터리에서 스킬을 만들거나 편집하세요."
     }
   },
   "layout": {
@@ -70,7 +72,8 @@
     "sessionsLoadFailed": "대화를 불러올 수 없습니다.",
     "pixelOffice": "픽셀 오피스",
     "paperTrading": "모의 거래",
-    "swarmTeams": "Swarm 팀"
+    "swarmTeams": "Swarm 팀",
+    "skills": "스킬"
   },
   "runtime": {
     "monitorBadge": "거래 모니터",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "초안으로 최신 버전 덮어쓰기",
     "savePreset": "프리셋 저장",
     "saving": "저장 중…",
-    "cancelEdit": "취소"
+    "cancelEdit": "취소",
+    "visualTab": "비주얼",
+    "yamlTab": "YAML",
+    "editModeLabel": "편집 모드",
+    "canvasLabel": "작업 그래프",
+    "canvasInspector": "인스펙터",
+    "canvasUnavailable": "이 문서에서는 비주얼 편집을 사용할 수 없습니다.",
+    "canvasUnavailableParse": "YAML을 파싱하지 못했습니다.",
+    "canvasUnavailableStructure": "이 프리셋은 예상되는 agents/tasks 구조를 사용하지 않습니다.",
+    "canvasUnavailableAlias": "이 문서는 YAML 앵커나 별칭을 사용하여 안전한 비주얼 편집이 불가능합니다.",
+    "canvasUnavailableHint": "내용은 변경되지 않았습니다. YAML 편집기에서 편집하세요.",
+    "useYamlEditor": "YAML 편집기 사용",
+    "selectTask": "선택",
+    "selectTaskHint": "그래프에서 작업을 선택하여 세부 정보를 편집하세요.",
+    "taskDetails": "작업 세부 정보",
+    "addTask": "새 작업",
+    "addAgent": "새 에이전트",
+    "newAgentOption": "새 에이전트…",
+    "agentSection": "에이전트",
+    "agentSelect": "에이전트",
+    "removeAgent": "에이전트 제거",
+    "removeAgentBlocked": "이 에이전트는 작업에서 아직 참조되고 있습니다. 제거하기 전에 해당 작업을 다시 할당하세요.",
+    "roleLabel": "역할",
+    "systemPromptLabel": "시스템 프롬프트",
+    "removeValue": "값 제거",
+    "addValue": "추가",
+    "addInputMapping": "입력 매핑 추가",
+    "inputKeyLabel": "입력 키",
+    "removeDependency": "의존성 제거",
+    "addDependency": "의존성 추가",
+    "removeTask": "작업 제거",
+    "graphConflict": "저장 차단: 입력 매핑이 그래프와 일치하지 않습니다.",
+    "graphConflictMissingSource": "참조된 작업이 더 이상 존재하지 않습니다. 인스펙터에서 입력을 다시 매핑하거나 매핑을 제거하세요.",
+    "graphConflictHint": "각 input_from 값은 상류 작업(직접 또는 전이적 의존성)을 가리켜야 합니다. 의존성을 다시 연결하거나 입력 매핑을 제거/변경하여 해결하세요.",
+    "relinkDependency": "의존성 다시 연결",
+    "removeMapping": "매핑 제거",
+    "graphSaveBlocked": "저장하기 전에 그래프에 표시된 입력 매핑을 수정하세요.",
+    "canvasEmptyTasks": "아직 작업이 없습니다. 첫 작업을 추가해 그래프를 만들어 보세요."
+  },
+  "skills": {
+    "badge": "스킬",
+    "title": "스킬",
+    "subtitle": "내장 스킬과 사용자 스킬을 탐색합니다. 내장 스킬은 읽기 전용이며, 자신의 스킬은 생성·편집·삭제할 수 있습니다.",
+    "loading": "스킬 카탈로그 불러오는 중…",
+    "loadingSource": "스킬 불러오는 중…",
+    "unavailable": "스킬 카탈로그를 사용할 수 없습니다",
+    "retry": "재시도",
+    "emptyCatalog": "스킬이 없습니다.",
+    "source": {
+      "user": "사용자",
+      "bundled": "내장"
+    },
+    "readOnly": "읽기 전용",
+    "open": "열기",
+    "newSkill": "새 스킬",
+    "creatingTitle": "새 사용자 스킬",
+    "contentLabel": "SKILL.md 내용",
+    "create": "스킬 생성",
+    "edit": "편집",
+    "save": "저장",
+    "delete": "삭제",
+    "cancel": "취소",
+    "close": "닫기",
+    "created": "스킬이 생성되었습니다.",
+    "saved": "스킬이 저장되었습니다.",
+    "deleted": "스킬이 삭제되었습니다.",
+    "actionFailed": "작업이 실패했습니다.",
+    "error": {
+      "nameCollision": "내장 또는 사용자 스킬이 이미 이 이름을 사용합니다. 다른 이름을 선택하세요.",
+      "revisionStale": "이 스킬은 서버에서 변경되었습니다. 초안이 보존됩니다.",
+      "auxiliaryFiles": "스킬 디렉터리에 보조 파일이 포함되어 삭제가 거부되었습니다."
+    },
+    "discardDraftReload": "초안을 버리고 최신 버전 불러오기",
+    "dismiss": "닫기",
+    "viewingTitle": "{{name}} 보는 중",
+    "editingTitle": "{{name}} 편집 중"
   }
 }

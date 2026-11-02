@@ -38,7 +38,8 @@
     "sessionsLoadFailed": "Konuşmalar yüklenemiyor.",
     "pixelOffice": "Piksel Ofis",
     "paperTrading": "Sanal işlem",
-    "swarmTeams": "Swarm ekipleri"
+    "swarmTeams": "Swarm ekipleri",
+    "skills": "Beceriler"
   },
   "runtime": {
     "monitorBadge": "Çalışma durumu izleyicisi",
@@ -2350,7 +2351,8 @@
       "settings": "Modelleri, veri kaynaklarını ve aracı kurum bağlantılarını yapılandırın.",
       "pixelOffice": "Araştırma görevlerini planlayın ve atayın. Atama yürütmeyi başlatmaz; rütbeler yalnızca etikettir ve işlem yetkisi vermez.",
       "paperTrading": "Günlük işlemleri sanal fonlarla deneyin. Aracı kuruma emir gönderilmez. Sonuçlar nakit temettüleri içermez ve toplam getiriyi göstermez.",
-      "swarmTeams": "Ekip ön ayarlarını ve ajan tanımlarını inceleyin."
+      "swarmTeams": "Ekip ön ayarlarını ve ajan tanımlarını inceleyin.",
+      "skills": "Dahili ve kullanıcı becerilerine göz atın ve kendi SKILL.md dosyalarınızı yönetin."
     },
     "instructions": {
       "reports": "Önce araştırma asistanından bir stratejiyi geriye dönük test etmesini isteyin, ardından sonuçları burada açın. PDF ve diğer sohbet belgelerini özgün konuşmadan indirin.",
@@ -2363,7 +2365,8 @@
       "settings": "Başlamak için bir model yapılandırın. Gerektikçe veri kaynakları veya aracı kurum bağlantıları ekleyin; kamuya açık piyasa araştırması için aracı kurum hesabı gerekmez.",
       "pixelOffice": "Araştırma görevlerini planlayın ve atayın. Atama yürütmeyi başlatmaz; rütbeler yalnızca etikettir ve işlem yetkisi vermez.",
       "paperTrading": "Yalnızca tamamlanmış günlük mumlar işlenir. Stratejiler önceki günleri okur ve işlem gününün kapanışında gerçekleşir. Normal kapanıştan 30 dakika sonrasını bekleyin; otomatik çalıştırma planlanmaz.",
-      "swarmTeams": "Belirtilen ekip planlarını, istemleri, bağımlılıkları ve ajan yapılandırmalarını inceleyin."
+      "swarmTeams": "Belirtilen ekip planlarını, istemleri, bağımlılıkları ve ajan yapılandırmalarını inceleyin.",
+      "skills": "Dahili beceriler salt okunur. Becerileri kullanıcı dizininizde oluşturun veya düzenleyin."
     }
   },
   "analysis": {
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "Taslağı en güncel sürümün üzerine kaydet",
     "savePreset": "Ön ayarı kaydet",
     "saving": "Kaydediliyor…",
-    "cancelEdit": "İptal"
+    "cancelEdit": "İptal",
+    "visualTab": "Görsel",
+    "yamlTab": "YAML metni",
+    "editModeLabel": "Düzenleme modu",
+    "canvasLabel": "Görev grafiği",
+    "canvasInspector": "İnceleyici",
+    "canvasUnavailable": "Bu belge için görsel düzenleme kullanılamıyor.",
+    "canvasUnavailableParse": "YAML ayrıştırılamadı.",
+    "canvasUnavailableStructure": "Bu ön ayar beklenen agents/tasks yapısını kullanmıyor.",
+    "canvasUnavailableAlias": "Bu belge, güvenli görsel düzenlemeyi engelleyen YAML çıpaları veya diğer adları kullanıyor.",
+    "canvasUnavailableHint": "İçeriğiniz değiştirilmedi; YAML düzenleyicide düzenleyin.",
+    "useYamlEditor": "YAML düzenleyiciyi kullan",
+    "selectTask": "Seç",
+    "selectTaskHint": "Ayrıntıları düzenlemek için grafikte bir görev seçin.",
+    "taskDetails": "Görev ayrıntıları",
+    "addTask": "Yeni görev",
+    "addAgent": "Yeni ajan",
+    "newAgentOption": "Yeni ajan…",
+    "agentSection": "Ajan",
+    "agentSelect": "Ajan",
+    "removeAgent": "Ajanı kaldır",
+    "removeAgentBlocked": "Bu ajana hâlâ görevlerden başvuruluyor. Kaldırmadan önce o görevleri yeniden atayın.",
+    "roleLabel": "Rol",
+    "systemPromptLabel": "Sistem istemi",
+    "removeValue": "Değeri kaldır",
+    "addValue": "Ekle",
+    "addInputMapping": "Giriş eşlemesi ekle",
+    "inputKeyLabel": "Giriş anahtarı",
+    "removeDependency": "Bağımlılığı kaldır",
+    "addDependency": "Bağımlılık ekle",
+    "removeTask": "Görevi kaldır",
+    "graphConflict": "Kaydetme engellendi: giriş eşlemeleri grafikle tutarsız.",
+    "graphConflictMissingSource": "Başvurulan görev artık mevcut değil. Girişi inceleyicide yeniden eşleyin veya eşlemeyi kaldırın.",
+    "graphConflictHint": "Her input_from değeri bir yukarı akış görevine (doğrudan veya geçişli bağımlılık) işaret etmelidir. Bağımlılığı yeniden bağlayarak veya giriş eşlemesini kaldırarak/değiştirerek düzeltin.",
+    "relinkDependency": "Bağımlılığı yeniden bağla",
+    "removeMapping": "Eşlemeyi kaldır",
+    "graphSaveBlocked": "Kaydetmeden önce grafikte işaretlenen giriş eşlemelerini düzeltin.",
+    "canvasEmptyTasks": "Henüz görev yok. Grafiği oluşturmak için ilk görevi ekleyin."
+  },
+  "skills": {
+    "badge": "Beceriler",
+    "title": "Beceriler",
+    "subtitle": "Dahili ve kullanıcı becerilerine göz atın. Dahili olanlar salt okunurdur; kendinizinkini oluşturun, düzenleyin ve silin.",
+    "loading": "Beceri kataloğu yükleniyor…",
+    "loadingSource": "Beceri yükleniyor…",
+    "unavailable": "Beceri kataloğu kullanılamıyor",
+    "retry": "Yeniden dene",
+    "emptyCatalog": "Beceri bulunamadı.",
+    "source": {
+      "user": "Kullanıcı",
+      "bundled": "Dahili"
+    },
+    "readOnly": "Salt okunur",
+    "open": "Aç",
+    "newSkill": "Yeni beceri",
+    "creatingTitle": "Yeni kullanıcı becerisi",
+    "contentLabel": "SKILL.md içeriği",
+    "create": "Beceri oluştur",
+    "edit": "Düzenle",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "cancel": "İptal",
+    "close": "Kapat",
+    "created": "Beceri oluşturuldu.",
+    "saved": "Beceri kaydedildi.",
+    "deleted": "Beceri silindi.",
+    "actionFailed": "İşlem başarısız oldu.",
+    "error": {
+      "nameCollision": "Dahili veya kullanıcı becerisi bu adı zaten kullanıyor. Farklı bir ad seçin.",
+      "revisionStale": "Bu beceri sunucuda değiştirildi. Taslağınız korunuyor.",
+      "auxiliaryFiles": "Beceri dizini destek dosyaları içerdiği için silme reddedildi."
+    },
+    "discardDraftReload": "Taslağı bırakın ve en yeniyi yükleyin",
+    "dismiss": "Kapat",
+    "viewingTitle": "{{name}} görüntüleniyor",
+    "editingTitle": "{{name}} düzenleniyor"
   }
 }

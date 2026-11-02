@@ -1,7 +1,8 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { ArrowDown, Check, LoaderCircle, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api, type SwarmPresetCatalog, type SwarmPresetSource, type SwarmPresetValidation } from "@/lib/api";
+import { PresetCanvas, NEW_PRESET_TEMPLATE, deriveGraphIssues } from "./PresetCanvas";
 
 type PresetIdentity = Pick<SwarmPresetCatalog, "name" | "title" | "source">;
 
@@ -10,6 +11,8 @@ interface PresetYamlEditorProps {
   onCancel: () => void;
   onSaved: () => void;
 }
+
+type EditMode = "visual" | "yaml";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -36,11 +39,16 @@ function errorMessage(error: unknown, fallback: string): string {
   return isRecord(error) && typeof error.message === "string" ? error.message : fallback;
 }
 
+function modeButtonClass(active: boolean): string {
+  return `rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`;
+}
+
 export function PresetYamlEditor({ preset, onCancel, onSaved }: PresetYamlEditorProps) {
   const { t } = useTranslation();
   const headingId = useId();
   const hintId = useId();
-  const [yamlText, setYamlText] = useState("");
+  const [editMode, setEditMode] = useState<EditMode>("visual");
+  const [yamlText, setYamlText] = useState(() => (preset ? "" : NEW_PRESET_TEMPLATE));
   const [source, setSource] = useState<SwarmPresetSource | null>(null);
   const [loadingSource, setLoadingSource] = useState(Boolean(preset));
   const [sourceError, setSourceError] = useState(false);
@@ -52,6 +60,24 @@ export function PresetYamlEditor({ preset, onCancel, onSaved }: PresetYamlEditor
   const [saveError, setSaveError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [latestSource, setLatestSource] = useState<SwarmPresetSource | null>(null);
+  // Derived straight from the draft so the non-upstream input_from check stays
+  // live in YAML mode too, where the canvas (and its effect) is not mounted.
+  const graphIssues = useMemo(() => deriveGraphIssues(yamlText), [yamlText]);
+  const [toolOptions, setToolOptions] = useState<string[] | undefined>(undefined);
+  const [skillOptions, setSkillOptions] = useState<string[] | undefined>(undefined);
+
+  // Catalogs only feed the inspector's suggestion lists; failing to load them
+  // keeps the plain text inputs working and never alters the YAML draft.
+  useEffect(() => {
+    const controller = new AbortController();
+    api.listToolCatalog(controller.signal)
+      .then((items) => setToolOptions(items.map((item) => item.name)))
+      .catch(() => setToolOptions(undefined));
+    api.listSkillCatalog(controller.signal)
+      .then((items) => setSkillOptions(items.map((item) => item.name)))
+      .catch(() => setSkillOptions(undefined));
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (!preset) {
@@ -144,7 +170,70 @@ export function PresetYamlEditor({ preset, onCancel, onSaved }: PresetYamlEditor
 
   const readyToSave = Boolean(
     !loadingSource && !sourceError && !saving && !validating && !conflict && validatedYaml === yamlText &&
-    validation?.valid && validation.errors.length === 0 && (!preset || source?.revision),
+    validation?.valid && validation.errors.length === 0 && graphIssues.length === 0 && (!preset || source?.revision),
+  );
+
+  const previewPanel = (
+    <section aria-label={t("swarmTeams.validationPreview")} className="rounded-lg border border-border/60 bg-muted/15 p-4">
+      <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">{t("swarmTeams.validationPreview")}</h3>
+      {!validation ? (
+        <p className="mt-3 text-sm text-muted-foreground">{t("swarmTeams.validateBeforePreview")}</p>
+      ) : (
+        <div aria-live="polite" className="mt-3 space-y-4">
+          {validation.valid && validation.errors.length === 0 && <p className="text-sm font-medium text-primary">{t("swarmTeams.validationComplete")}</p>}
+          {validation.errors.length > 0 && (
+            <div>
+              <h4 className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-warning"><TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" />{t("swarmTeams.validationErrors")}</h4>
+              <ul className="list-inside list-disc space-y-1 text-sm text-warning">{validation.errors.map((error, index) => <li key={`${index}:${error}`}>{error}</li>)}</ul>
+            </div>
+          )}
+          {validation.warnings.length > 0 && (
+            <div>
+              <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("swarmTeams.validationWarnings")}</h4>
+              <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">{validation.warnings.map((warning, index) => <li key={`${index}:${warning}`}>{warning}</li>)}</ul>
+            </div>
+          )}
+          <div>
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("swarmTeams.dagPreview")}</h4>
+            {validation.layers.length ? (
+              <ol className="space-y-2">
+                {validation.layers.map((layer, index) => (
+                  <li key={`layer:${index}`}>
+                    {index > 0 && <div className="my-1 flex justify-center text-primary/60"><ArrowDown className="h-4 w-4" aria-hidden="true" /></div>}
+                    <div className="rounded-md border border-border/60 bg-background p-3">
+                      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{t("swarmTeams.layer", { number: index + 1 })}</p>
+                      <ul className="space-y-2">
+                        {layer.map(({ task_id, agent_id }, taskIndex) => (
+                          <li key={`${task_id}:${taskIndex}`} className="min-w-0 rounded border border-primary/15 bg-primary/5 px-2.5 py-2 text-xs">
+                            <span className="break-all font-mono font-semibold">{task_id}</span>
+                            <span className="block truncate pt-1 text-muted-foreground">{t("swarmTeams.agentLabel")}: <span className="font-mono">{agent_id}</span></span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : <p className="text-sm text-muted-foreground">{t("swarmTeams.noLayers")}</p>}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+
+  const actionBar = (
+    <div className="flex flex-wrap gap-2">
+      <button type="button" onClick={() => void validate()} disabled={validating || saving || loadingSource} className="inline-flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        {validating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
+        {validating ? t("swarmTeams.validating") : t("swarmTeams.validate")}
+      </button>
+      <button type="button" onClick={() => void save()} disabled={!readyToSave} aria-describedby={graphIssues.length > 0 ? `${headingId}-graph-blocked` : undefined} className="rounded-md border border-primary/30 px-3.5 py-2 text-sm font-semibold text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+        {saving ? t("swarmTeams.saving") : t("swarmTeams.savePreset")}
+      </button>
+      {graphIssues.length > 0 && (
+        <p id={`${headingId}-graph-blocked`} aria-live="polite" className="self-center text-xs text-warning">{t("swarmTeams.graphSaveBlocked")}</p>
+      )}
+    </div>
   );
 
   return (
@@ -158,120 +247,85 @@ export function PresetYamlEditor({ preset, onCancel, onSaved }: PresetYamlEditor
           </p>
           {preset?.source === "bundled" && <p className="mt-2 text-xs text-muted-foreground">{t("swarmTeams.bundledEditHint")}</p>}
         </div>
-        <button type="button" onClick={onCancel} className="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-          {t("swarmTeams.cancelEdit")}
-        </button>
+        <div className="flex items-center gap-3">
+          <div role="group" aria-label={t("swarmTeams.editModeLabel")} className="inline-flex rounded-lg border border-border/60 bg-muted/15 p-1">
+            <button type="button" aria-pressed={editMode === "visual"} onClick={() => setEditMode("visual")} className={modeButtonClass(editMode === "visual")}>{t("swarmTeams.visualTab")}</button>
+            <button type="button" aria-pressed={editMode === "yaml"} onClick={() => setEditMode("yaml")} className={modeButtonClass(editMode === "yaml")}>{t("swarmTeams.yamlTab")}</button>
+          </div>
+          <button type="button" onClick={onCancel} className="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+            {t("swarmTeams.cancelEdit")}
+          </button>
+        </div>
       </header>
 
-      <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)]">
-        <div className="min-w-0">
-          {loadingSource ? (
-            <div role="status" className="flex min-h-48 items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
-              <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />{t("swarmTeams.loadingSource")}
-            </div>
-          ) : sourceError ? (
-            <div role="alert" className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
-              <p className="text-warning">{t("swarmTeams.sourceLoadFailed")}</p>
-              <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} className="mt-3 rounded-md border border-border/60 px-3 py-2 font-medium hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-                {t("swarmTeams.retry")}
-              </button>
-            </div>
-          ) : (
-            <>
-              <label htmlFor={`${headingId}-yaml`} className="mb-2 block text-sm font-medium">{t("swarmTeams.yamlLabel")}</label>
-              <textarea
-                id={`${headingId}-yaml`}
-                aria-label={t("swarmTeams.yamlLabel")}
-                aria-describedby={hintId}
-                aria-invalid={validation !== null && (!validation.valid || validation.errors.length > 0)}
-                disabled={validating || saving}
-                spellCheck={false}
-                autoCapitalize="off"
-                autoCorrect="off"
-                rows={20}
-                value={yamlText}
-                onChange={(event) => handleYamlChange(event.target.value)}
-                className="min-h-[24rem] w-full resize-y rounded-lg border border-border/70 bg-background p-4 font-mono text-xs leading-relaxed text-foreground shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              />
-              <p id={hintId} className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("swarmTeams.yamlHint")}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button type="button" onClick={validate} disabled={validating || saving || loadingSource} className="inline-flex items-center gap-2 rounded-md bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-                  {validating ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-                  {validating ? t("swarmTeams.validating") : t("swarmTeams.validate")}
-                </button>
-                <button type="button" onClick={() => void save()} disabled={!readyToSave} className="rounded-md border border-primary/30 px-3.5 py-2 text-sm font-semibold text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-                  {saving ? t("swarmTeams.saving") : t("swarmTeams.savePreset")}
-                </button>
-              </div>
-            </>
-          )}
-
-          {saveError && <p role="alert" className="mt-4 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-warning">{saveError}</p>}
-          {conflict && (
-            <div role="alert" className="mt-4 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm">
-              <p className="font-medium text-warning">{t("swarmTeams.conflict")}</p>
-              <p className="mt-1 text-muted-foreground">{t("swarmTeams.conflictDraftPreserved")}</p>
-              {latestSource && (
-                <>
-                  <details className="mt-3">
-                    <summary className="cursor-pointer font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">{t("swarmTeams.latestSource")}</summary>
-                    <pre aria-label={t("swarmTeams.latestSource")} className="mt-2 max-h-56 overflow-auto rounded-md border border-border/60 bg-background p-3 font-mono text-xs leading-relaxed">{latestSource.yaml_text}</pre>
-                  </details>
-                  <button type="button" onClick={() => void save(latestSource.revision)} disabled={!validatedYaml || validatedYaml !== yamlText || saving} className="mt-3 rounded-md border border-warning/30 px-3 py-2 font-medium text-warning hover:bg-warning/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning/40">
-                    {t("swarmTeams.saveDraftOverLatest")}
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+      {loadingSource ? (
+        <div role="status" className="m-5 flex min-h-48 items-center gap-2 rounded-lg border border-border/60 bg-muted/20 p-4 text-sm text-muted-foreground">
+          <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />{t("swarmTeams.loadingSource")}
         </div>
-
-        <section aria-label={t("swarmTeams.validationPreview")} className="rounded-lg border border-border/60 bg-muted/15 p-4">
-          <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">{t("swarmTeams.validationPreview")}</h3>
-          {!validation ? (
-            <p className="mt-3 text-sm text-muted-foreground">{t("swarmTeams.validateBeforePreview")}</p>
-          ) : (
-            <div aria-live="polite" className="mt-3 space-y-4">
-              {validation.valid && validation.errors.length === 0 && <p className="text-sm font-medium text-primary">{t("swarmTeams.validationComplete")}</p>}
-              {validation.errors.length > 0 && (
-                <div>
-                  <h4 className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-warning"><TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" />{t("swarmTeams.validationErrors")}</h4>
-                  <ul className="list-inside list-disc space-y-1 text-sm text-warning">{validation.errors.map((error, index) => <li key={`${index}:${error}`}>{error}</li>)}</ul>
-                </div>
-              )}
-              {validation.warnings.length > 0 && (
-                <div>
-                  <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("swarmTeams.validationWarnings")}</h4>
-                  <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">{validation.warnings.map((warning, index) => <li key={`${index}:${warning}`}>{warning}</li>)}</ul>
-                </div>
-              )}
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("swarmTeams.dagPreview")}</h4>
-                {validation.layers.length ? (
-                  <ol className="space-y-2">
-                    {validation.layers.map((layer, index) => (
-                      <li key={`layer:${index}`}>
-                        {index > 0 && <div className="my-1 flex justify-center text-primary/60"><ArrowDown className="h-4 w-4" aria-hidden="true" /></div>}
-                        <div className="rounded-md border border-border/60 bg-background p-3">
-                          <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{t("swarmTeams.layer", { number: index + 1 })}</p>
-                          <ul className="space-y-2">
-                            {layer.map(({ task_id, agent_id }, taskIndex) => (
-                              <li key={`${task_id}:${taskIndex}`} className="min-w-0 rounded border border-primary/15 bg-primary/5 px-2.5 py-2 text-xs">
-                                <span className="break-all font-mono font-semibold">{task_id}</span>
-                                <span className="block truncate pt-1 text-muted-foreground">{t("swarmTeams.agentLabel")}: <span className="font-mono">{agent_id}</span></span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                ) : <p className="text-sm text-muted-foreground">{t("swarmTeams.noLayers")}</p>}
-              </div>
+      ) : sourceError ? (
+        <div role="alert" className="m-5 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm">
+          <p className="text-warning">{t("swarmTeams.sourceLoadFailed")}</p>
+          <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} className="mt-3 rounded-md border border-border/60 px-3 py-2 font-medium hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+            {t("swarmTeams.retry")}
+          </button>
+        </div>
+      ) : editMode === "visual" ? (
+        <div className="space-y-5 p-5">
+          <PresetCanvas
+            yamlText={yamlText}
+            onYamlChange={handleYamlChange}
+            onFallbackToYaml={() => setEditMode("yaml")}
+            toolOptions={toolOptions}
+            skillOptions={skillOptions}
+          />
+          {actionBar}
+          {saveError && <p role="alert" className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-warning">{saveError}</p>}
+          <div className="grid gap-5 lg:grid-cols-2">{previewPanel}</div>
+        </div>
+      ) : (
+        <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)]">
+          <div className="min-w-0">
+            <label htmlFor={`${headingId}-yaml`} className="mb-2 block text-sm font-medium">{t("swarmTeams.yamlLabel")}</label>
+            <textarea
+              id={`${headingId}-yaml`}
+              aria-label={t("swarmTeams.yamlLabel")}
+              aria-describedby={hintId}
+              aria-invalid={validation !== null && (!validation.valid || validation.errors.length > 0)}
+              disabled={validating || saving}
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
+              rows={20}
+              value={yamlText}
+              onChange={(event) => handleYamlChange(event.target.value)}
+              className="min-h-[24rem] w-full resize-y rounded-lg border border-border/70 bg-background p-4 font-mono text-xs leading-relaxed text-foreground shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            />
+            <p id={hintId} className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("swarmTeams.yamlHint")}</p>
+            <div className="mt-4">
+              {actionBar}
             </div>
-          )}
-        </section>
-      </div>
+            {saveError && <p role="alert" className="mt-4 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm text-warning">{saveError}</p>}
+            {conflict && (
+              <div role="alert" className="mt-4 rounded-lg border border-warning/30 bg-warning/5 p-3 text-sm">
+                <p className="font-medium text-warning">{t("swarmTeams.conflict")}</p>
+                <p className="mt-1 text-muted-foreground">{t("swarmTeams.conflictDraftPreserved")}</p>
+                {latestSource && (
+                  <>
+                    <details className="mt-3">
+                      <summary className="cursor-pointer font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">{t("swarmTeams.latestSource")}</summary>
+                      <pre aria-label={t("swarmTeams.latestSource")} className="mt-2 max-h-56 overflow-auto rounded-md border border-border/60 bg-background p-3 font-mono text-xs leading-relaxed">{latestSource.yaml_text}</pre>
+                    </details>
+                    <button type="button" onClick={() => void save(latestSource.revision)} disabled={!validatedYaml || validatedYaml !== yamlText || saving} className="mt-3 rounded-md border border-warning/30 px-3 py-2 font-medium text-warning hover:bg-warning/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning/40">
+                      {t("swarmTeams.saveDraftOverLatest")}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          {previewPanel}
+        </div>
+      )}
     </section>
   );
 }

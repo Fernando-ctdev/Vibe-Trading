@@ -30,7 +30,8 @@
       "settings": "Modelle, Datenquellen und Brokerverbindungen konfigurieren.",
       "pixelOffice": "Plane und verteile Rechercheaufgaben. Eine Zuweisung startet keine Ausführung. Ränge sind Bezeichnungen und erteilen keine Handelsrechte.",
       "paperTrading": "Tägliche Trades mit virtuellem Kapital testen. Es werden keine Brokeraufträge gesendet. Bardividenden sind nicht enthalten; die Ergebnisse zeigen keine Gesamtrendite.",
-      "swarmTeams": "Sieh dir Team-Presets und ihre Agent-Definitionen an."
+      "swarmTeams": "Sieh dir Team-Presets und ihre Agent-Definitionen an.",
+      "skills": "Durchsuche mitgelieferte und eigene Skills und verwalte deine SKILL.md-Dateien."
     },
     "instructions": {
       "reports": "Bitte den Assistenten zuerst um einen Strategie-Backtest und öffne hier die Ergebnisse. Im Chat erstellte PDFs und andere Dokumente lädst du in der ursprünglichen Unterhaltung herunter.",
@@ -43,7 +44,8 @@
       "settings": "Richte zunächst ein Modell ein. Ergänze Datenquellen oder Brokerverbindungen nach Bedarf; für öffentliche Marktrecherche ist kein Brokerkonto nötig.",
       "pixelOffice": "Plane und verteile Rechercheaufgaben. Eine Zuweisung startet keine Ausführung. Ränge sind Bezeichnungen und erteilen keine Handelsrechte.",
       "paperTrading": "Nur abgeschlossene Tageskerzen werden abgerechnet. Strategien sehen vorherige Tage und handeln zum Schlusskurs des Ausführungstags. Bitte 30 Minuten nach regulärem Börsenschluss warten; es wird keine automatische Ausführung geplant.",
-      "swarmTeams": "Lies die deklarierten Team-Pläne, Prompts, Abhängigkeiten und Agent-Konfigurationen."
+      "swarmTeams": "Lies die deklarierten Team-Pläne, Prompts, Abhängigkeiten und Agent-Konfigurationen.",
+      "skills": "Mitgelieferte Skills sind schreibgeschützt. Erstelle oder bearbeite Skills in deinem Benutzerverzeichnis."
     }
   },
   "layout": {
@@ -76,7 +78,8 @@
     "sessionsLoadFailed": "Gespräche können nicht geladen werden.",
     "pixelOffice": "Pixelbüro",
     "paperTrading": "Simulierter Handel",
-    "swarmTeams": "Swarm-Teams"
+    "swarmTeams": "Swarm-Teams",
+    "skills": "Skills"
   },
   "runtime": {
     "monitorBadge": "Runtime-Monitor",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "Entwurf über aktuelle Version speichern",
     "savePreset": "Preset speichern",
     "saving": "Wird gespeichert…",
-    "cancelEdit": "Abbrechen"
+    "cancelEdit": "Abbrechen",
+    "visualTab": "Visuell",
+    "yamlTab": "YAML",
+    "editModeLabel": "Bearbeitungsmodus",
+    "canvasLabel": "Aufgabengraph",
+    "canvasInspector": "Inspektor",
+    "canvasUnavailable": "Visuelle Bearbeitung ist für dieses Dokument nicht verfügbar.",
+    "canvasUnavailableParse": "Das YAML konnte nicht geparst werden.",
+    "canvasUnavailableStructure": "Dieses Preset nutzt nicht die erwartete agents/tasks-Struktur.",
+    "canvasUnavailableAlias": "Dieses Dokument verwendet YAML-Anker oder Aliase, die eine sichere visuelle Bearbeitung verhindern.",
+    "canvasUnavailableHint": "Dein Inhalt wurde nicht geändert; bearbeite ihn im YAML-Editor.",
+    "useYamlEditor": "YAML-Editor verwenden",
+    "selectTask": "Auswählen",
+    "selectTaskHint": "Wähle eine Aufgabe im Graphen, um ihre Details zu bearbeiten.",
+    "taskDetails": "Aufgabendetails",
+    "addTask": "Neue Aufgabe",
+    "addAgent": "Neuer Agent",
+    "newAgentOption": "Neuer Agent…",
+    "agentSection": "Agent",
+    "agentSelect": "Agent",
+    "removeAgent": "Agent entfernen",
+    "removeAgentBlocked": "Dieser Agent wird noch von Aufgaben referenziert. Weise diese Aufgaben neu zu, bevor du ihn entfernst.",
+    "roleLabel": "Rolle",
+    "systemPromptLabel": "System-Prompt",
+    "removeValue": "Wert entfernen",
+    "addValue": "Hinzufügen",
+    "addInputMapping": "Input-Mapping hinzufügen",
+    "inputKeyLabel": "Input-Schlüssel",
+    "removeDependency": "Abhängigkeit entfernen",
+    "addDependency": "Abhängigkeit hinzufügen",
+    "removeTask": "Aufgabe entfernen",
+    "graphConflict": "Speichern blockiert: Input-Mappings passen nicht zum Graphen.",
+    "graphConflictMissingSource": "Die referenzierte Aufgabe existiert nicht mehr. Weise den Input im Inspektor neu zu oder entferne das Mapping.",
+    "graphConflictHint": "Jeder input_from-Wert muss auf eine Upstream-Aufgabe zeigen (direkte oder transitive Abhängigkeit). Verknüpfe die Abhängigkeit neu oder entferne/ändere das Input-Mapping.",
+    "relinkDependency": "Abhängigkeit neu verknüpfen",
+    "removeMapping": "Mapping entfernen",
+    "graphSaveBlocked": "Behebe die markierten Input-Mappings im Graphen, bevor du speicherst.",
+    "canvasEmptyTasks": "Noch keine Aufgaben. Füge die erste Aufgabe hinzu, um den Graphen aufzubauen."
+  },
+  "skills": {
+    "badge": "Skills",
+    "title": "Skills",
+    "subtitle": "Durchsuche mitgelieferte und eigene Skills. Mitgelieferte sind schreibgeschützt; erstelle, bearbeite und lösche deine eigenen.",
+    "loading": "Skill-Katalog wird geladen…",
+    "loadingSource": "Skill wird geladen…",
+    "unavailable": "Skill-Katalog nicht verfügbar",
+    "retry": "Erneut versuchen",
+    "emptyCatalog": "Keine Skills gefunden.",
+    "source": {
+      "user": "Benutzer",
+      "bundled": "Mitgeliefert"
+    },
+    "readOnly": "Schreibgeschützt",
+    "open": "Öffnen",
+    "newSkill": "Neue Skill",
+    "creatingTitle": "Neue Benutzer-Skill",
+    "contentLabel": "SKILL.md-Inhalt",
+    "create": "Skill erstellen",
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "created": "Skill erstellt.",
+    "saved": "Skill gespeichert.",
+    "deleted": "Skill gelöscht.",
+    "actionFailed": "Die Aktion ist fehlgeschlagen.",
+    "error": {
+      "nameCollision": "Eine mitgelieferte oder Benutzer-Skill deklariert diesen Namen bereits. Wähle einen anderen Namen.",
+      "revisionStale": "Diese Skill wurde auf dem Server geändert. Dein Entwurf bleibt erhalten.",
+      "auxiliaryFiles": "Das Löschen wurde verweigert, weil das Skill-Verzeichnis unterstützende Dateien enthält."
+    },
+    "discardDraftReload": "Entwurf verwerfen und neueste laden",
+    "dismiss": "Verwerfen",
+    "viewingTitle": "{{name}} wird angezeigt",
+    "editingTitle": "{{name}} wird bearbeitet"
   }
 }

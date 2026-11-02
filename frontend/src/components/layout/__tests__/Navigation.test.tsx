@@ -18,9 +18,10 @@ it("keeps every feature directly reachable and distinguishes tasks from tools an
   expect(screen.queryByRole("region", { name: "Specialized analysis" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Asset correlation" })).not.toBeInTheDocument();
   expect(within(screen.getByRole("region", { name: "Automation & setup" })).getAllByRole("link").map((link) => link.getAttribute("href")))
-    .toEqual(["/scheduled", "/swarm/teams", "/settings"]);
+    .toEqual(["/scheduled", "/swarm/teams", "/skills/manage", "/settings"]);
   expect(screen.getByRole("link", { name: "Research assistant" })).toHaveAttribute("aria-current", "page");
   expect(router.routes[0].children?.some((route) => route.path === "/correlation")).toBe(true);
+  expect(router.routes[0].children?.some((route) => route.path === "/skills/manage")).toBe(true);
 });
 
 it("keeps Correlation hidden from the compact menu while its route remains available", () => {
@@ -56,7 +57,8 @@ it("opens a labeled feature menu in compact mode and returns focus on Escape", (
   expect(within(menu).queryByText("Trading status")).not.toBeInTheDocument();
   expect(within(menu).queryByText("Asset correlation")).not.toBeInTheDocument();
   expect(within(menu).getByRole("link", { name: "Swarm teams" })).toHaveAttribute("href", "/swarm/teams");
-  expect(within(menu).getAllByRole("link")).toHaveLength(7);
+  expect(within(menu).getByRole("link", { name: "Skills" })).toHaveAttribute("href", "/skills/manage");
+  expect(within(menu).getAllByRole("link")).toHaveLength(8);
   fireEvent.keyDown(document, { key: "Escape" });
   expect(screen.queryByRole("navigation", { name: "Browse features" })).not.toBeInTheDocument();
   expect(trigger).toHaveFocus();

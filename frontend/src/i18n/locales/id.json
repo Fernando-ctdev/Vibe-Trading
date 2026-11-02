@@ -30,7 +30,8 @@
       "settings": "Atur model, sumber data, dan koneksi broker.",
       "pixelOffice": "Rencanakan dan tugaskan riset. Penugasan tidak memulai eksekusi; pangkat hanya label dan tidak memberikan izin transaksi.",
       "paperTrading": "Uji transaksi harian dengan dana virtual. Tidak ada pesanan yang dikirim ke broker. Hasil tidak mencakup dividen tunai dan bukan imbal hasil total.",
-      "swarmTeams": "Lihat preset tim dan definisi agennya."
+      "swarmTeams": "Lihat preset tim dan definisi agennya.",
+      "skills": "Jelajahi skill bawaan dan pengguna serta kelola file SKILL.md Anda."
     },
     "instructions": {
       "reports": "Minta asisten melakukan backtest strategi terlebih dahulu, lalu buka hasilnya di sini. Unduh PDF dan dokumen yang dibuat di chat dari percakapan asal.",
@@ -43,7 +44,8 @@
       "settings": "Atur model untuk memulai. Tambahkan data atau koneksi broker sesuai kebutuhan; riset data pasar publik tidak memerlukan akun broker.",
       "pixelOffice": "Rencanakan dan tugaskan riset. Penugasan tidak memulai eksekusi; pangkat hanya label dan tidak memberikan izin transaksi.",
       "paperTrading": "Hanya candle harian yang selesai dapat diproses. Strategi membaca hari sebelumnya dan dieksekusi pada penutupan hari eksekusi. Tunggu 30 menit setelah penutupan reguler; tidak ada eksekusi otomatis yang dijadwalkan.",
-      "swarmTeams": "Tinjau rencana tim, prompt, dependensi, dan konfigurasi agen yang dinyatakan."
+      "swarmTeams": "Tinjau rencana tim, prompt, dependensi, dan konfigurasi agen yang dinyatakan.",
+      "skills": "Skill bawaan hanya dapat dibaca. Buat atau edit skill di direktori pengguna Anda."
     }
   },
   "layout": {
@@ -76,7 +78,8 @@
     "sessionsLoadFailed": "Percakapan tidak dapat dimuat.",
     "pixelOffice": "Kantor piksel",
     "paperTrading": "Trading simulasi",
-    "swarmTeams": "Tim Swarm"
+    "swarmTeams": "Tim Swarm",
+    "skills": "Skill"
   },
   "runtime": {
     "monitorBadge": "Monitor Runtime",
@@ -2613,6 +2616,81 @@
     "saveDraftOverLatest": "Simpan draf menimpa versi terbaru",
     "savePreset": "Simpan preset",
     "saving": "Menyimpan…",
-    "cancelEdit": "Batal"
+    "cancelEdit": "Batal",
+    "visualTab": "Visual",
+    "yamlTab": "YAML",
+    "editModeLabel": "Mode edit",
+    "canvasLabel": "Graf tugas",
+    "canvasInspector": "Inspektur",
+    "canvasUnavailable": "Pengeditan visual tidak tersedia untuk dokumen ini.",
+    "canvasUnavailableParse": "YAML tidak dapat diurai.",
+    "canvasUnavailableStructure": "Preset ini tidak menggunakan struktur agents/tasks yang diharapkan.",
+    "canvasUnavailableAlias": "Dokumen ini menggunakan jangkar atau alias YAML yang mencegah pengeditan visual yang aman.",
+    "canvasUnavailableHint": "Konten Anda tidak diubah; edit di editor YAML.",
+    "useYamlEditor": "Gunakan editor YAML",
+    "selectTask": "Pilih",
+    "selectTaskHint": "Pilih tugas di graf untuk mengedit detailnya.",
+    "taskDetails": "Detail tugas",
+    "addTask": "Tugas baru",
+    "addAgent": "Agen baru",
+    "newAgentOption": "Agen baru…",
+    "agentSection": "Agen",
+    "agentSelect": "Agen",
+    "removeAgent": "Hapus agen",
+    "removeAgentBlocked": "Agen ini masih dirujuk oleh tugas. Tetapkan ulang tugas tersebut sebelum menghapusnya.",
+    "roleLabel": "Peran",
+    "systemPromptLabel": "System prompt",
+    "removeValue": "Hapus nilai",
+    "addValue": "Tambah",
+    "addInputMapping": "Tambah pemetaan input",
+    "inputKeyLabel": "Kunci input",
+    "removeDependency": "Hapus dependensi",
+    "addDependency": "Tambah dependensi",
+    "removeTask": "Hapus tugas",
+    "graphConflict": "Penyimpanan diblokir: pemetaan input tidak konsisten dengan graf.",
+    "graphConflictMissingSource": "Tugas yang dirujuk sudah tidak ada. Petakan ulang input di inspektur atau hapus pemetaannya.",
+    "graphConflictHint": "Setiap nilai input_from harus mengarah ke tugas hulu (dependensi langsung atau transitif). Perbaiki dengan menghubungkan ulang dependensi atau menghapus/mengubah pemetaan input.",
+    "relinkDependency": "Hubungkan ulang dependensi",
+    "removeMapping": "Hapus pemetaan",
+    "graphSaveBlocked": "Perbaiki pemetaan input yang ditandai di graf sebelum menyimpan.",
+    "canvasEmptyTasks": "Belum ada tugas. Tambahkan tugas pertama untuk membangun graf."
+  },
+  "skills": {
+    "badge": "Skill",
+    "title": "Skill",
+    "subtitle": "Jelajahi skill bawaan dan pengguna. Skill bawaan hanya dapat dibaca; buat, edit, dan hapus milik Anda.",
+    "loading": "Memuat katalog skill…",
+    "loadingSource": "Memuat skill…",
+    "unavailable": "Katalog skill tidak tersedia",
+    "retry": "Coba lagi",
+    "emptyCatalog": "Tidak ada skill ditemukan.",
+    "source": {
+      "user": "Pengguna",
+      "bundled": "Bawaan"
+    },
+    "readOnly": "Hanya baca",
+    "open": "Buka",
+    "newSkill": "Skill baru",
+    "creatingTitle": "Skill pengguna baru",
+    "contentLabel": "Konten SKILL.md",
+    "create": "Buat skill",
+    "edit": "Edit",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "created": "Skill dibuat.",
+    "saved": "Skill disimpan.",
+    "deleted": "Skill dihapus.",
+    "actionFailed": "Tindakan gagal.",
+    "error": {
+      "nameCollision": "Skill bawaan atau pengguna sudah menggunakan nama ini. Pilih nama lain.",
+      "revisionStale": "Skill ini berubah di server. Draf Anda dipertahankan.",
+      "auxiliaryFiles": "Penghapusan ditolak karena direktori skill berisi file pendukung."
+    },
+    "discardDraftReload": "Buang draf dan muat terbaru",
+    "dismiss": "Tutup",
+    "viewingTitle": "Melihat {{name}}",
+    "editingTitle": "Mengedit {{name}}"
   }
 }

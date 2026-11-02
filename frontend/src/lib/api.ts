@@ -658,6 +658,30 @@ export const api = {
     request<{ status: string }>(`/swarm/runs/${id}/cancel`, { method: "POST" }),
   retrySwarmRun: (id: string) =>
     request<{ id: string; status: string; preset_name: string }>(`/swarm/runs/${id}/retry`, { method: "POST" }),
+
+  // Skills & tools catalog API
+  listSkillCatalog: (signal?: AbortSignal) =>
+    request<SkillCatalogItem[]>("/skills/catalog", { signal }),
+  getSkillSource: (name: string, signal?: AbortSignal) =>
+    request<SkillSource>(`/skills/${encodeURIComponent(name)}/source`, { signal }),
+  createSkill: (content: string) =>
+    request<{ name: string; source: string }>("/skills", {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }),
+  saveSkillSource: (name: string, content: string, revision: string) =>
+    request<{ name: string; source: string }>(`/skills/${encodeURIComponent(name)}/source`, {
+      method: "PUT",
+      headers: { "If-Match": revision },
+      body: JSON.stringify({ content }),
+    }),
+  deleteSkillSource: (name: string, revision: string) =>
+    request<{ name: string; deleted: boolean }>(`/skills/${encodeURIComponent(name)}/source`, {
+      method: "DELETE",
+      headers: { "If-Match": revision },
+    }),
+  listToolCatalog: (signal?: AbortSignal) =>
+    request<ToolCatalogItem[]>("/tools/catalog", { signal }),
   getLLMSettings: () => request<LLMSettings>("/settings/llm"),
   updateLLMSettings: (settings: UpdateLLMSettingsRequest) =>
     request<LLMSettings>("/settings/llm", {
@@ -982,6 +1006,26 @@ export interface SwarmRunSummary {
   created_at: string;
   task_count: number;
   completed_count: number;
+}
+
+// --- Skills & tools catalog types ---
+
+export interface SkillCatalogItem {
+  name: string;
+  source: "user" | "bundled";
+  description: string;
+}
+
+export interface SkillSource {
+  name: string;
+  source: "user" | "bundled";
+  content: string;
+  revision: string;
+}
+
+export interface ToolCatalogItem {
+  name: string;
+  description: string;
 }
 
 export interface LLMProviderOption {

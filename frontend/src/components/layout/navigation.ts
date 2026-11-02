@@ -1,4 +1,4 @@
-import { FlaskConical, Bot, CalendarClock, FileText, Settings, Users, WalletCards } from "lucide-react";
+import { FlaskConical, Bot, BookOpen, CalendarClock, FileText, Settings, Users, WalletCards } from "lucide-react";
 
 export const NAVIGATION_GROUPS = [
   { id: "research", items: [
@@ -10,6 +10,7 @@ export const NAVIGATION_GROUPS = [
   { id: "automation", items: [
     { id: "scheduled", to: "/scheduled", icon: CalendarClock },
     { id: "swarmTeams", to: "/swarm/teams", icon: Users },
+    { id: "skills", to: "/skills/manage", icon: BookOpen },
     { id: "settings", to: "/settings", icon: Settings },
   ] },
 ] as const;
